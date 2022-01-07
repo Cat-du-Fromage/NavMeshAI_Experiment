@@ -51,7 +51,7 @@ namespace KaizerWaldCode.RTTSelection
             if (!selectionRegister.ContainsKey(regimentId))
             {
                 selectionRegister.Add(regimentId, cachedRegiment);
-                //cachedRegiment.GetComponent<RegimentComponent>().SetSelected(true);
+                cachedRegiment.GetComponent<RegimentComponent>().SetSelected(true);
             }
         }
         

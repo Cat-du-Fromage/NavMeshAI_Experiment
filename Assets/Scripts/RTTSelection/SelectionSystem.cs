@@ -14,11 +14,9 @@ namespace KaizerWaldCode.RTTSelection
     public class SelectionSystem : MonoBehaviour
     {
         public SelectionRegister selectionRegister;
-        
         public Camera playerCamera;
 
         private SelectionInputController control;
-
         private SelectionInputController.MouseControlActions mouseControl;
         
         //SELECTION CACHE
@@ -28,6 +26,7 @@ namespace KaizerWaldCode.RTTSelection
         
         //CONSTANT
         private readonly LayerMask terrainLayerMask = 1 << 8;
+        private readonly LayerMask unitLayerMask = 1 << 9;
         
         //UI RECTANGLE
         private readonly Vector2[] uiCorners = new Vector2[4];
@@ -37,7 +36,6 @@ namespace KaizerWaldCode.RTTSelection
         //MESH SELECTION
         private MeshCollider selectionBox;
         private Mesh selectionMesh;
-        
         private readonly Vector3[] selectionMeshVertices = BasicCube;
 
         //MOUSE POSITION VARIABLES
@@ -46,28 +44,22 @@ namespace KaizerWaldCode.RTTSelection
 
         //NEW INPUT SYSTEM
         private bool isDragging;
-        
-        //INPUTS (clunky with input system)
-        private Keyboard keyboard;
+        private Keyboard keyboard; // (clunky with input system so we keep it the old way)
         private bool ShiftKey => keyboard.shiftKey.isPressed;
 
         //INITIALIZATION
         //==============================================================================================================
         private void OnEnable() => control.Enable();
         private void OnDisable() => control.Disable();
+
+        private void OnDestroy() => MouseLeftClickEvents(false);
+
         
-        private void OnDestroy()
-        {
-            mouseControl.MouseLeftClick.started -= OnStartMouseClick;
-            mouseControl.MouseLeftClick.performed -= OnMouseClickMove;
-            mouseControl.MouseLeftClick.canceled -= OnCancelMouseClick;
-        }
         
         private void Awake()
         {
             control ??= new SelectionInputController();
             mouseControl = control.MouseControl;
-            
             keyboard = Keyboard.current;
             
             playerCamera = Camera.main;
@@ -75,9 +67,7 @@ namespace KaizerWaldCode.RTTSelection
             InitializeMesh();
             InitializeCollider();
             
-            mouseControl.MouseLeftClick.started += OnStartMouseClick;
-            mouseControl.MouseLeftClick.performed += OnMouseClickMove;
-            mouseControl.MouseLeftClick.canceled += OnCancelMouseClick;
+            MouseLeftClickEvents(true);
         }
         //INITIALIZATION
         private void InitializeCollider()
@@ -97,8 +87,9 @@ namespace KaizerWaldCode.RTTSelection
             selectionMesh.SetTriangles(CubeVertices,0,false);
         }
 
-        //EVENTS
+        //EVENTS CALLBACKS
         //==============================================================================================================
+        
         private void OnStartMouseClick(InputAction.CallbackContext ctx) => startMouseClick = ctx.ReadValue<Vector2>();
 
         private void OnMouseClickMove(InputAction.CallbackContext ctx)
@@ -121,6 +112,26 @@ namespace KaizerWaldCode.RTTSelection
                 isDragging = false;
             }
         }
+        
+        //EVENTS ENABLE/DISABLE
+        //==============================================================================================================
+        
+        private void MouseLeftClickEvents(bool enable)
+        {
+            if (enable)
+            {
+                mouseControl.MouseLeftClick.started += OnStartMouseClick;
+                mouseControl.MouseLeftClick.performed += OnMouseClickMove;
+                mouseControl.MouseLeftClick.canceled += OnCancelMouseClick;
+            }
+            else
+            {
+                mouseControl.MouseLeftClick.started -= OnStartMouseClick;
+                mouseControl.MouseLeftClick.performed -= OnMouseClickMove;
+                mouseControl.MouseLeftClick.canceled -= OnCancelMouseClick;
+            }
+        }
+        
 
         //METHODS
         //==============================================================================================================
@@ -128,10 +139,7 @@ namespace KaizerWaldCode.RTTSelection
         /// <summary>
         /// Update vertices of the selectionMesh
         /// </summary>
-        private void UpdateSelectionMesh()
-        {
-            selectionMesh.SetVertexBufferData(selectionMeshVertices, 0, 0, 8, 0, NoRecalculations);
-        }
+        private void UpdateSelectionMesh() => selectionMesh.SetVertices(selectionMeshVertices);
 
         /// <summary>
         /// Mark Unit as selected on Click
@@ -140,7 +148,7 @@ namespace KaizerWaldCode.RTTSelection
         {
             if (!ShiftKey) selectionRegister.DeselectAllRegiment();//selectionRegister.DeselectAll();
             Ray ray = playerCamera.ScreenPointToRay(startMouseClick);
-            if (Physics.Raycast(ray, out selectionHit, 5000.0f) && selectionHit.transform.TryGetComponent(out SelectionComponent selectComp))
+            if (Physics.Raycast(ray, out selectionHit, 5000.0f, unitLayerMask) && selectionHit.transform.TryGetComponent(out SelectionComponent selectComp))
             {
                 if (selectionHit.transform.parent == null) return; //awkward, will we really have unit without regiment?
                 unitSelected = selectionHit.transform.gameObject;
@@ -199,14 +207,9 @@ namespace KaizerWaldCode.RTTSelection
             
             if (regimentSelected == null) return; //awkward will we really have unit without regiment?
             if(!regimentSelected.TryGetComponent(out RegimentComponent regComp)) return;
-            if(regComp.SelectState) return;
+            if(regComp.SelectState) return; //unit's regiment is already selected
             
-            Debug.Log($"Select State = {regComp.SelectState}");
-            //if (!unitSelected.TryGetComponent(out SelectionComponent select) &&
-                //unitSelected.GetComponentInParent<RegimentComponent>().SelectState) return;
             selectionRegister.AddRegimentSelection(unitSelected);
-            unitSelected.transform.parent.gameObject.GetComponent<RegimentComponent>().SetSelected(true);
-            //selectionRegister.AddSelection(unitCollider.gameObject);
         }
         
 
