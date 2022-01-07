@@ -8,11 +8,13 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine.InputSystem.Interactions;
 
-using static Unity.Mathematics.math;
 using static KaizerWaldCode.Utils.KWmath;
+
+using static Unity.Mathematics.math;
 using float3 = Unity.Mathematics.float3;
 using float2 = Unity.Mathematics.float2;
-namespace KaizerWaldCode.RTSCamera
+
+namespace KaizerWaldCode.RTTCamera
 {
     public class CameraSystem : MonoBehaviour
     {

@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace KaizerWaldCode.RTSSelection
+namespace KaizerWaldCode.RTTSelection
 {
     public class SelectionComponent : MonoBehaviour
     {
-        private bool isSelected = false;
+        public bool isSelected = false;
 
         public bool IsSelected => isSelected;
         

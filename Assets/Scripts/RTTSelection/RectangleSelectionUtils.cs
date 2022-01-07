@@ -5,7 +5,7 @@ using UnityEngine;
 
 using static Unity.Mathematics.math;
 
-namespace KaizerWaldCode
+namespace KaizerWaldCode.RTTSelection
 {
     public static class RectangleSelectionUtils
     {
@@ -18,6 +18,12 @@ namespace KaizerWaldCode
             whiteTexture.SetPixel(0, 0, Color.white);
             whiteTexture.Apply();
             return whiteTexture;
+        }
+
+        public static void DrawFullScreenRect(Rect rect, float thickness, Color baseColor, Color border)
+        {
+            DrawScreenRect(rect, baseColor);
+            DrawScreenRectBorder(rect, thickness, border);
         }
     
         public static void DrawScreenRect(Rect rect, Color color)
