@@ -46,13 +46,8 @@ namespace KaizerWaldCode.RTTSelection
         private Vector2 startMouseClick = Vector2.zero;
         private Vector2 EndMouseClick => Mouse.current.position.ReadValue();
         
-        //NEW INPUT SYSTEM
-        private bool leftClickPressed = false;
         //INPUTS
-        //may switch to input system for more clarity
-        
         private Mouse mouse;
-        
         private ButtonControl mouseLeftClick;
         private Keyboard keyboard;
         private bool MouseIsDragged => startMouseClick != EndMouseClick && lengthsq(EndMouseClick - startMouseClick) > 160;

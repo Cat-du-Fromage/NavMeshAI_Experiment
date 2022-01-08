@@ -8,9 +8,9 @@ using UnityEngine;
 using System.Runtime.CompilerServices;
 
 using static Unity.Collections.LowLevel.Unsafe.NativeArrayUnsafeUtility;
-using static KaizerWaldCode.Utils.KwManagedContainerUtils;
+using static KWUtils.KwManagedContainerUtils;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
     public static class NativeCollectionUtils
     {

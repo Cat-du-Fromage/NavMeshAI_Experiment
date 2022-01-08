@@ -6,9 +6,9 @@ using Unity.Mathematics;
 using UnityEngine;
 
 using static Unity.Mathematics.math;
-using static KaizerWaldCode.Utils.NativeCollectionUtils;
+using static KWUtils.NativeCollectionUtils;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
     public static class SpatialPartitionUtils
     {

@@ -23,7 +23,7 @@ namespace KaizerWaldCode.RTTCamera
 
         private Controls controls;
         
-        private bool canRotate;
+        private bool canRotate = false;
         private int sprint;
         private float zoom;
         private Vector2 mouseStartPosition, mouseEndPosition;
@@ -37,11 +37,10 @@ namespace KaizerWaldCode.RTTCamera
             controls.Enable();
             
             cameraTransform = transform;
-            MinMax(ref rotationSpeed, 1, rotationSpeed);
-            MinMax(ref baseMoveSpeed, 1, baseMoveSpeed);
-            MinMax(ref zoomSpeed, 1, zoomSpeed);
-            MinMax(ref sprint, 1, sprint);
-            canRotate = false;
+            rotationSpeed = max(1, rotationSpeed);
+            baseMoveSpeed = max(1, baseMoveSpeed);
+            zoomSpeed = max(1, zoomSpeed);
+            sprint = max(1, sprint);
         }
 
         private void Start()

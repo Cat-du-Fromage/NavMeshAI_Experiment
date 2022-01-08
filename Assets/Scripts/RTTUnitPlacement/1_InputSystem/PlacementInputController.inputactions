@@ -1,0 +1,56 @@
+{
+    "name": "PlacementInputController",
+    "maps": [
+        {
+            "name": "PlacementControl",
+            "id": "d4d951a8-3eea-408e-b4e7-6618b9b9d831",
+            "actions": [
+                {
+                    "name": "RightClickMove",
+                    "type": "Value",
+                    "id": "aea697b2-e650-4d49-8526-c6c7932636e8",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "StartPosition",
+                    "id": "6b8e2771-cdde-4ef4-a1f6-6db76dae083b",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightClickMove",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "24e83080-8887-455f-b060-c5c0213ca434",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightClickMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "761890bc-524b-42fb-a5a7-ebdf3117e33a",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightClickMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

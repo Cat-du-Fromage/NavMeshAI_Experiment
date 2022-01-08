@@ -141,7 +141,11 @@ namespace KaizerWaldCode.RTTSelection
             
             if (hitUnit && CachedUnit.TryGetComponent(out SelectionComponent selectComp))
             {
-                RegimentSelected = CachedUnit.parent;
+                //RegimentSelected = CachedUnit.parent;
+                //Transform regimentFromParent = CachedUnit.parent;
+                //RegimentSelected = regimentFromParent != null ? regimentFromParent : CachedUnit.GetComponent<UnitComponent>().Regiment;
+                RegimentSelected = CachedUnit.GetComponent<UnitComponent>().Regiment;
+                Debug.Log($"Regiment is {RegimentSelected}");
                 if(selectComp.IsSelected) 
                     Register.Remove(RegimentSelected);
                 else 
@@ -163,7 +167,7 @@ namespace KaizerWaldCode.RTTSelection
                 if (Raycast(ray, out Hit, INFINITY, TerrainLayer)) //only intersect terrain
                 {
                     SelectionMeshVertices[i] = new Vector3(Hit.point.x, Hit.point.y, Hit.point.z);
-                    SelectionMeshVertices[i + 4] = ray.origin + (Hit.point - ray.origin) * PlayerCamera.nearClipPlane; //Use clip plane of the camera as vertices for the top mesh
+                    SelectionMeshVertices[i + 4] = ray.origin + (Hit.point - ray.origin).normalized * PlayerCamera.nearClipPlane; //Use clip plane of the camera as vertices for the top mesh
                     hitCount++;
                     Debug.DrawLine(PlayerCamera.ScreenToWorldPoint(UiCorners[i]), Hit.point, Color.red, 3.0f);
                 }
@@ -193,8 +197,9 @@ namespace KaizerWaldCode.RTTSelection
         private void OnTriggerEnter(Collider unitCollider)
         {
             CachedUnit = unitCollider.transform;
-            RegimentSelected = CachedUnit.parent;
-            
+            //Transform regimentFromParent = CachedUnit.parent;
+            //RegimentSelected = regimentFromParent != null ? regimentFromParent : CachedUnit.GetComponent<UnitComponent>().Regiment;
+            RegimentSelected = CachedUnit.GetComponent<UnitComponent>().Regiment;
             if(!RegimentSelected.TryGetComponent(out RegimentComponent regComp)) return;
             if(regComp.SelectState) return; //unit's regiment is already selected
             

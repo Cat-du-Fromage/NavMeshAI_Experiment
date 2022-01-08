@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.IL2CPP.CompilerServices;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
  
 	/// <summary>

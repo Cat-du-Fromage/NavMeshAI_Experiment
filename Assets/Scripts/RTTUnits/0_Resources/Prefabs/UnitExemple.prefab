@@ -95,8 +95,9 @@ GameObject:
   - component: {fileID: 854274783225195258}
   - component: {fileID: 854274783225195257}
   - component: {fileID: 854274783225195256}
-  - component: {fileID: 854274783225195263}
   - component: {fileID: 854274783225195236}
+  - component: {fileID: 854274783225195263}
+  - component: {fileID: -2879075736394233839}
   m_Layer: 9
   m_Name: UnitExemple
   m_TagString: Untagged
@@ -187,6 +188,22 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &854274783225195236
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 854274783225195262}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 80
+  m_CollisionDetection: 0
 --- !u!114 &854274783225195263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -202,23 +219,20 @@ MonoBehaviour:
   selectRender: {fileID: 4354521380485888022}
   preSelectRender: {fileID: 2394903170805034149}
   isSelected: 0
-  isPreSelected: 0
---- !u!54 &854274783225195236
-Rigidbody:
+  isPreselected: 0
+--- !u!114 &-2879075736394233839
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 854274783225195262}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 136858cb304568a49a92c27cc6629a3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: Fusilier
 --- !u!1 &2158886674086827716
 GameObject:
   m_ObjectHideFlags: 0

@@ -26,10 +26,11 @@ namespace KaizerWaldCode.RTTSelection
         //SELECTION CACHE
         private Transform CachedUnitPreselection;
         private Transform CurrentPreselection;
-        private RaycastHit hit;
-        private Ray ray;
-
         private bool PreselectOn;
+        
+        //RAYCAST 
+        private RaycastHit hit;
+        private Ray RayCam(Vector2 mousPos) => PlayerCamera.ScreenPointToRay(mousPos);
         
         private void OnEnable() => Control.Enable();
         private void OnDisable() => Control.Disable();
@@ -49,21 +50,23 @@ namespace KaizerWaldCode.RTTSelection
 
         private void OnMouseMove(InputAction.CallbackContext ctx)
         {
-            ray = PlayerCamera.ScreenPointToRay(ctx.ReadValue<Vector2>());
+            bool hitUnit = Raycast(RayCam(ctx.ReadValue<Vector2>()), out hit, INFINITY, UnitLayer);
             
-            bool hitUnit = Raycast(ray, out hit, INFINITY, UnitLayer);
             CachedUnitPreselection = hitUnit ? hit.transform : CachedUnitPreselection;
             
             if (hitUnit && CachedUnitPreselection.TryGetComponent(out SelectionComponent comp))
             {
                 if (comp.IsPreselected) return;
-                
-                if (PreselectOn && CachedUnitPreselection.parent != CurrentPreselection)
+                Transform regimentFromParent = CachedUnitPreselection.parent;
+                CachedUnitPreselection = regimentFromParent != null ? regimentFromParent : CachedUnitPreselection.GetComponent<UnitComponent>().Regiment;
+                //if (PreselectOn && CachedUnitPreselection.parent != CurrentPreselection)
+                if (PreselectOn && regimentFromParent != CurrentPreselection)
                 {
                     Register.Clear();
                 }
                 
-                CurrentPreselection = CachedUnitPreselection.parent;
+                //CurrentPreselection = CachedUnitPreselection.parent;
+                CurrentPreselection = CachedUnitPreselection;
                 Register.Add(CurrentPreselection);
                     
                 PreselectOn = true;
