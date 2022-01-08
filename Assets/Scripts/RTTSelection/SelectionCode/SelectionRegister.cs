@@ -17,6 +17,7 @@ namespace KaizerWaldCode.RTTSelection
         {
             //cachedRegiment = regiment;
             int regimentId = regiment.GetInstanceID();
+            Debug.Log(regimentId);
             if (!Selections.ContainsKey(regimentId))
             {
                 Selections.Add(regimentId, regiment);

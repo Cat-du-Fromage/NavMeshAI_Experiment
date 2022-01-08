@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Mathematics;
@@ -40,8 +42,10 @@ namespace KaizerWaldCode.RTTSelection
             Control ??= new SelectionInputController();
             MouseCtrl = Control.MouseControl;
 
-            MouseCtrl.MouseMove.performed += OnMouseMove;
+            MouseCtrl.PreselectMouseMove.EnablePerformEvent(OnMouseMove);
         }
+
+        private void OnDestroy() => MouseCtrl.PreselectMouseMove.DisablePerformEvent(OnMouseMove);
 
         private void OnMouseMove(InputAction.CallbackContext ctx)
         {

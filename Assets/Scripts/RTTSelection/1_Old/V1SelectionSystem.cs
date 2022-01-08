@@ -1,14 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using KaizerWaldCode.Utils;
+using KWUtils;
 using Unity.Collections;
-using Unity.Mathematics;
+using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
-using static KaizerWaldCode.Utils.KWRect;
+using static KWUtils.KWRect;
 using static KaizerWaldCode.Utils.KWmesh;
 using static Unity.Mathematics.math;
 

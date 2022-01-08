@@ -37,7 +37,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MouseLeftClick"",
+                    ""name"": ""SelectionMouseLeftClick"",
                     ""type"": ""Value"",
                     ""id"": ""9de3c399-d817-416b-8f67-0b5b7e24276b"",
                     ""expectedControlType"": ""Vector2"",
@@ -46,7 +46,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""MouseMove"",
+                    ""name"": ""PreselectMouseMove"",
                     ""type"": ""Value"",
                     ""id"": ""5aed991a-fc19-4bce-b371-d274db86314f"",
                     ""expectedControlType"": ""Vector2"",
@@ -74,7 +74,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MouseLeftClick"",
+                    ""action"": ""SelectionMouseLeftClick"",
                     ""isComposite"": true,
                     ""isPartOfComposite"": false
                 },
@@ -85,7 +85,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MouseLeftClick"",
+                    ""action"": ""SelectionMouseLeftClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -96,7 +96,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MouseLeftClick"",
+                    ""action"": ""SelectionMouseLeftClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -107,7 +107,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MouseMove"",
+                    ""action"": ""PreselectMouseMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -119,8 +119,8 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
         // MouseControl
         m_MouseControl = asset.FindActionMap("MouseControl", throwIfNotFound: true);
         m_MouseControl_ShiftClick = m_MouseControl.FindAction("ShiftClick", throwIfNotFound: true);
-        m_MouseControl_MouseLeftClick = m_MouseControl.FindAction("MouseLeftClick", throwIfNotFound: true);
-        m_MouseControl_MouseMove = m_MouseControl.FindAction("MouseMove", throwIfNotFound: true);
+        m_MouseControl_SelectionMouseLeftClick = m_MouseControl.FindAction("SelectionMouseLeftClick", throwIfNotFound: true);
+        m_MouseControl_PreselectMouseMove = m_MouseControl.FindAction("PreselectMouseMove", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -181,15 +181,15 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
     private readonly InputActionMap m_MouseControl;
     private IMouseControlActions m_MouseControlActionsCallbackInterface;
     private readonly InputAction m_MouseControl_ShiftClick;
-    private readonly InputAction m_MouseControl_MouseLeftClick;
-    private readonly InputAction m_MouseControl_MouseMove;
+    private readonly InputAction m_MouseControl_SelectionMouseLeftClick;
+    private readonly InputAction m_MouseControl_PreselectMouseMove;
     public struct MouseControlActions
     {
         private @SelectionInputController m_Wrapper;
         public MouseControlActions(@SelectionInputController wrapper) { m_Wrapper = wrapper; }
         public InputAction @ShiftClick => m_Wrapper.m_MouseControl_ShiftClick;
-        public InputAction @MouseLeftClick => m_Wrapper.m_MouseControl_MouseLeftClick;
-        public InputAction @MouseMove => m_Wrapper.m_MouseControl_MouseMove;
+        public InputAction @SelectionMouseLeftClick => m_Wrapper.m_MouseControl_SelectionMouseLeftClick;
+        public InputAction @PreselectMouseMove => m_Wrapper.m_MouseControl_PreselectMouseMove;
         public InputActionMap Get() { return m_Wrapper.m_MouseControl; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -202,12 +202,12 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                 @ShiftClick.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnShiftClick;
                 @ShiftClick.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnShiftClick;
                 @ShiftClick.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnShiftClick;
-                @MouseLeftClick.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnMouseLeftClick;
-                @MouseLeftClick.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnMouseLeftClick;
-                @MouseLeftClick.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnMouseLeftClick;
-                @MouseMove.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnMouseMove;
-                @MouseMove.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnMouseMove;
-                @MouseMove.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnMouseMove;
+                @SelectionMouseLeftClick.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnSelectionMouseLeftClick;
+                @SelectionMouseLeftClick.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnSelectionMouseLeftClick;
+                @SelectionMouseLeftClick.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnSelectionMouseLeftClick;
+                @PreselectMouseMove.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnPreselectMouseMove;
+                @PreselectMouseMove.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnPreselectMouseMove;
+                @PreselectMouseMove.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnPreselectMouseMove;
             }
             m_Wrapper.m_MouseControlActionsCallbackInterface = instance;
             if (instance != null)
@@ -215,12 +215,12 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                 @ShiftClick.started += instance.OnShiftClick;
                 @ShiftClick.performed += instance.OnShiftClick;
                 @ShiftClick.canceled += instance.OnShiftClick;
-                @MouseLeftClick.started += instance.OnMouseLeftClick;
-                @MouseLeftClick.performed += instance.OnMouseLeftClick;
-                @MouseLeftClick.canceled += instance.OnMouseLeftClick;
-                @MouseMove.started += instance.OnMouseMove;
-                @MouseMove.performed += instance.OnMouseMove;
-                @MouseMove.canceled += instance.OnMouseMove;
+                @SelectionMouseLeftClick.started += instance.OnSelectionMouseLeftClick;
+                @SelectionMouseLeftClick.performed += instance.OnSelectionMouseLeftClick;
+                @SelectionMouseLeftClick.canceled += instance.OnSelectionMouseLeftClick;
+                @PreselectMouseMove.started += instance.OnPreselectMouseMove;
+                @PreselectMouseMove.performed += instance.OnPreselectMouseMove;
+                @PreselectMouseMove.canceled += instance.OnPreselectMouseMove;
             }
         }
     }
@@ -228,7 +228,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
     public interface IMouseControlActions
     {
         void OnShiftClick(InputAction.CallbackContext context);
-        void OnMouseLeftClick(InputAction.CallbackContext context);
-        void OnMouseMove(InputAction.CallbackContext context);
+        void OnSelectionMouseLeftClick(InputAction.CallbackContext context);
+        void OnPreselectMouseMove(InputAction.CallbackContext context);
     }
 }

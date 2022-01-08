@@ -1,14 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using KaizerWaldCode.Utils;
+using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine.InputSystem.Interactions;
 
-using static KaizerWaldCode.Utils.KWmath;
+using static KWUtils.KWmath;
 
 using static Unity.Mathematics.math;
 using float3 = Unity.Mathematics.float3;

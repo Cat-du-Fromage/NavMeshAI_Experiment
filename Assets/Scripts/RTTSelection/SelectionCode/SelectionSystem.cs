@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using KaizerWaldCode.RTTUnits;
-using KaizerWaldCode.Utils;
+using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
@@ -9,7 +9,7 @@ using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
 
 using static KaizerWaldCode.Utils.KWmesh;
-using static KaizerWaldCode.Utils.KWRect;
+using static KWUtils.KWRect;
 
 namespace KaizerWaldCode.RTTSelection
 {
@@ -21,6 +21,7 @@ namespace KaizerWaldCode.RTTSelection
 
         private SelectionInputController Control;
         private SelectionInputController.MouseControlActions MouseCtrl;
+        private InputAction MouseEvents;
         
         //SELECTION CACHE
         private Transform CachedUnit;
@@ -54,17 +55,20 @@ namespace KaizerWaldCode.RTTSelection
         private void OnEnable() => Control.Enable();
         private void OnDisable() => Control.Disable();
 
-        private void OnDestroy() => MouseLeftClickEvents(false);
+        private void OnDestroy() => MouseEvents.DisableAllEvents(OnStartMouseClick, OnPerformMoveMouse, OnCancelMouseClick);
 
         private void Awake()
         {
-            Control ??= new SelectionInputController();
-            MouseCtrl = Control.MouseControl;
             PlayerCamera = Camera.main;
             Register = GetComponent<SelectionRegister>();
+            
+            Control ??= new SelectionInputController();
+            MouseCtrl = Control.MouseControl;
+            MouseEvents = Control.MouseControl.SelectionMouseLeftClick;
+            
             InitializeMesh();
             InitializeCollider();
-            MouseLeftClickEvents(true);
+            MouseEvents.EnableAllEvents(OnStartMouseClick, OnPerformMoveMouse, OnCancelMouseClick);
         }
         //INITIALIZATION
         private void InitializeCollider()
@@ -81,14 +85,26 @@ namespace KaizerWaldCode.RTTSelection
         //EVENTS CALLBACKS
         //==============================================================================================================
         
+        /// <summary>
+        /// EVENT : When mouse is click this frame (register only once)
+        /// </summary>
+        /// <param name="ctx">context(start in this case), use to get (Vector2)mouse position</param>
         private void OnStartMouseClick(InputAction.CallbackContext ctx) => StartMouseClick = ctx.ReadValue<Vector2>();
 
-        private void OnMouseClickMove(InputAction.CallbackContext ctx)
+        /// <summary>
+        /// EVENT : When left-mouse click + move mouse
+        /// </summary>
+        /// <param name="ctx">Context(performed in this case); use to get (Vector2)mouse position</param>
+        private void OnPerformMoveMouse(InputAction.CallbackContext ctx)
         {
             EndMouseClick = ctx.ReadValue<Vector2>();
             IsDragging = lengthsq(EndMouseClick - StartMouseClick) > 160;
         }
         
+        /// <summary>
+        /// EVENT : When Left Click Is Released
+        /// </summary>
+        /// <param name="ctx">context(canceled in this case)</param>
         private void OnCancelMouseClick(InputAction.CallbackContext ctx)
         {
             if (!IsDragging)
@@ -103,26 +119,6 @@ namespace KaizerWaldCode.RTTSelection
                 IsDragging = false;
             }
         }
-        
-        //EVENTS ENABLE/DISABLE
-        //==============================================================================================================
-        
-        private void MouseLeftClickEvents(bool enable)
-        {
-            if (enable)
-            {
-                MouseCtrl.MouseLeftClick.started += OnStartMouseClick;
-                MouseCtrl.MouseLeftClick.performed += OnMouseClickMove;
-                MouseCtrl.MouseLeftClick.canceled += OnCancelMouseClick;
-            }
-            else
-            {
-                MouseCtrl.MouseLeftClick.started -= OnStartMouseClick;
-                MouseCtrl.MouseLeftClick.performed -= OnMouseClickMove;
-                MouseCtrl.MouseLeftClick.canceled -= OnCancelMouseClick;
-            }
-        }
-        
 
         //METHODS
         //==============================================================================================================

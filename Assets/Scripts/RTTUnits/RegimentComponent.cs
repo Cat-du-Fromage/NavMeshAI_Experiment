@@ -8,19 +8,12 @@ namespace KaizerWaldCode.RTTUnits
 {
     public class RegimentComponent : MonoBehaviour
     {
-        //Properties
-        
-        //base size
-        //current size
-        //UnitType : Gameobject
-        
         [SerializeField] private GameObject unitPrefab;
         [SerializeField] private int baseSize = 1;
         
         private Transform regimentTransform;
 
         public bool SelectState; //{ get; private set; }
-        
         public bool PreselectState;
         private int CurrentSize => transform.childCount;
         
@@ -53,17 +46,15 @@ namespace KaizerWaldCode.RTTUnits
         {
             SelectState = enable;
             for (int i = 0; i < regimentTransform.childCount; i++)
-            {
-                regimentTransform.GetChild(i).GetComponent<SelectionComponent>().SetSelected(enable);
-            }
+                GetComponentsInChildren<SelectionComponent>()[i].SetSelected(enable);
         }
         
         //SetSelected(bool) : select/deselect all units
         public void SetPreselected(bool enable)
         {
-            SelectState = enable;
+            PreselectState = enable;
             for (int i = 0; i < regimentTransform.childCount; i++)
-                regimentTransform.GetChild(i).GetComponent<SelectionComponent>().SetPreselected(enable);
+                GetComponentsInChildren<SelectionComponent>()[i].SetPreselected(enable);
         }
 
     }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
     public static class KWRect
     {
