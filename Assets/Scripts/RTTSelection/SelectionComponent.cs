@@ -7,16 +7,14 @@ namespace KaizerWaldCode.RTTSelection
 {
     public class SelectionComponent : MonoBehaviour
     {
-        //[SerializeField] private GameObject selectHighlight;
-        //[SerializeField] private GameObject preSelectHighlight;
-
         [SerializeField]private Renderer selectRender;
         [SerializeField]private Renderer preSelectRender;
         
         public bool isSelected = false;
-        public bool isPreSelected = false;
+        public bool isPreselected = false;
         public bool IsSelected => isSelected;
-
+        public bool IsPreselected => isPreselected;
+        
         private void Awake()
         {
             selectRender.enabled = false;
@@ -29,20 +27,10 @@ namespace KaizerWaldCode.RTTSelection
             isSelected = state;
         }
         
-        public void SetPreSelected(bool state)
+        public void SetPreselected(bool state)
         {
             preSelectRender.enabled = state;
-            isSelected = state;
-        }
-
-        private void OnMouseOver()
-        {
-            preSelectRender.enabled = true;
-        }
-
-        private void OnMouseExit()
-        {
-            preSelectRender.enabled = false;
+            isPreselected = state;
         }
     }
 }

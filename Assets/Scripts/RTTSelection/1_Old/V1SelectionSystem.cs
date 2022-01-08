@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
-using static KaizerWaldCode.Utils.KWmath;
+using static KaizerWaldCode.Utils.KWRect;
 using static KaizerWaldCode.Utils.KWmesh;
 using static Unity.Mathematics.math;
 
@@ -23,7 +23,7 @@ namespace KaizerWaldCode.RTTSelection
         public Camera playerCamera;
 
         //SELECTION CACHE
-        private GameObject unitSelected;
+        private Transform unitSelected;
         private RaycastHit selectionHit; //when mouse click we cast a ray
         
         //CONSTANT
@@ -111,7 +111,7 @@ namespace KaizerWaldCode.RTTSelection
             }
             else if (mouseLeftClick.wasReleasedThisFrame)
             {
-                if (!ShiftKey) selectionRegister.DeselectAll();
+                if (!ShiftKey) selectionRegister.Clear();
 
                 if (!MouseIsDragged)
                 {
@@ -156,11 +156,11 @@ namespace KaizerWaldCode.RTTSelection
             Ray ray = playerCamera.ScreenPointToRay(startMouseClick);
             if (Physics.Raycast(ray, out selectionHit, 5000.0f) && selectionHit.transform.TryGetComponent(out SelectionComponent selectComp))
             {
-                unitSelected = selectionHit.transform.gameObject;
+                unitSelected = selectionHit.transform;
                 if(selectComp.IsSelected)
-                    selectionRegister.DeselectSingleUnit(unitSelected.GetInstanceID());
+                    selectionRegister.Remove(unitSelected.parent);
                 else
-                    selectionRegister.AddSelection(unitSelected);
+                    selectionRegister.Add(unitSelected.parent);
             }
         }
         
@@ -207,7 +207,7 @@ namespace KaizerWaldCode.RTTSelection
         private void OnTriggerEnter(Collider unitCollider)
         {
             if (!unitCollider.gameObject.TryGetComponent(out SelectionComponent select)) return;
-            selectionRegister.AddSelection(unitCollider.gameObject);
+            selectionRegister.Add(unitCollider.transform.parent);
         }
         
 
@@ -216,9 +216,8 @@ namespace KaizerWaldCode.RTTSelection
         private void OnGUI()
         {
             if (!(mouseLeftClick.isPressed && MouseIsDragged)) return;
-            Rect selectRectangle = RectangleSelectionUtils.GetScreenRect(startMouseClick, EndMouseClick);
-            RectangleSelectionUtils.DrawScreenRect(selectRectangle, uiColor);
-            RectangleSelectionUtils.DrawScreenRectBorder(selectRectangle, 2, uiBorderColor);
+            Rect selectRectangle = GetScreenRect(startMouseClick, EndMouseClick);
+            DrawFullScreenRect(selectRectangle, 2, uiColor, uiBorderColor);
         }
         
         /// <summary>

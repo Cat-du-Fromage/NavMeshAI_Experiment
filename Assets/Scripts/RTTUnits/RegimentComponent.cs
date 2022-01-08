@@ -21,6 +21,7 @@ namespace KaizerWaldCode.RTTUnits
 
         public bool SelectState; //{ get; private set; }
         
+        public bool PreselectState;
         private int CurrentSize => transform.childCount;
         
         //Unity Event
@@ -43,7 +44,7 @@ namespace KaizerWaldCode.RTTUnits
             for (int i = 0; i < baseSize; i++)
             {
                 Vector3 pos = startPos + new Vector3(startPos.x + (i * 1.5f), 2f, startPos.z + 3f);
-                Instantiate(unitPrefab, pos, regimentTransform.rotation, regimentTransform); //param regTransform set unit as children of the regiment
+                Instantiate(unitPrefab, pos, regimentTransform.rotation, regimentTransform).name = $"Solidier {i}"; //param regTransform set unit as children of the regiment
             }
         }
         
@@ -55,6 +56,14 @@ namespace KaizerWaldCode.RTTUnits
             {
                 regimentTransform.GetChild(i).GetComponent<SelectionComponent>().SetSelected(enable);
             }
+        }
+        
+        //SetSelected(bool) : select/deselect all units
+        public void SetPreselected(bool enable)
+        {
+            SelectState = enable;
+            for (int i = 0; i < regimentTransform.childCount; i++)
+                regimentTransform.GetChild(i).GetComponent<SelectionComponent>().SetPreselected(enable);
         }
 
     }

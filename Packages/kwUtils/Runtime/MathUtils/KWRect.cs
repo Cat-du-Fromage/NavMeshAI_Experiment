@@ -1,16 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using static Unity.Mathematics.math;
-
-namespace KaizerWaldCode.RTTSelection
+namespace KaizerWaldCode.Utils
 {
-    public static class RectangleSelectionUtils
+    public static class KWRect
     {
         private static Texture2D whiteTexture;
-        private static readonly float screenHeight = Screen.height;
         private static Texture2D WhiteTexture => whiteTexture == null ? GetWhiteTexture() : whiteTexture;
         private static Texture2D GetWhiteTexture()
         {
@@ -49,8 +45,8 @@ namespace KaizerWaldCode.RTTSelection
         {
             // Careful, 0,0 is at BOTTOM-LEFT (not top left as usual..)
             // Move origin from bottom left to top left
-            startPoint.y = screenHeight - startPoint.y;
-            endPoint.y = screenHeight - endPoint.y;
+            startPoint.y = Screen.height - startPoint.y;
+            endPoint.y = Screen.height - endPoint.y;
             // Calculate corners
             Vector2 topLeft = Vector2.Min(startPoint, endPoint);
             Vector2 bottomRight = Vector2.Max(startPoint, endPoint);
