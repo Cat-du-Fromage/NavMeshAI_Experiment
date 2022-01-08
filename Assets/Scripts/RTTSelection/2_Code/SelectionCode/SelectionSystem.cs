@@ -197,8 +197,6 @@ namespace KaizerWaldCode.RTTSelection
         private void OnTriggerEnter(Collider unitCollider)
         {
             CachedUnit = unitCollider.transform;
-            //Transform regimentFromParent = CachedUnit.parent;
-            //RegimentSelected = regimentFromParent != null ? regimentFromParent : CachedUnit.GetComponent<UnitComponent>().Regiment;
             RegimentSelected = CachedUnit.GetComponent<UnitComponent>().Regiment;
             if(!RegimentSelected.TryGetComponent(out RegimentComponent regComp)) return;
             if(regComp.SelectState) return; //unit's regiment is already selected

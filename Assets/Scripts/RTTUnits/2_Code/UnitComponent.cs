@@ -11,8 +11,6 @@ namespace KaizerWaldCode
         public string Name => name;
 
         public Transform Regiment { get; private set; }
-        public int RegimentId { get; private set; }
-
         public void SetRegiment(Transform regiment) => Regiment = regiment;
     }
 }

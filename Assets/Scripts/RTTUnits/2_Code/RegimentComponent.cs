@@ -14,7 +14,7 @@ namespace KaizerWaldCode.RTTUnits
         [SerializeField] private RegimentType regimentType;
         [SerializeField] private GameObject unitPrefab;
 
-        public Transform[] Units;
+        public Transform[] Units { get; private set; }
 
         private Transform regimentTransform;
         public Vector3 UnitSize { get; private set; }
@@ -22,7 +22,7 @@ namespace KaizerWaldCode.RTTUnits
         public bool SelectState { get; private set; }
         public bool PreselectState { get; private set; }
         
-        public int CurrentSize { get => transform.childCount;}
+        public int CurrentSize { get => Units.Length;}
         public RegimentType GetRegimentType { get => regimentType;}
 
         //Unity Event
@@ -47,18 +47,11 @@ namespace KaizerWaldCode.RTTUnits
             for (int i = 0; i < regimentType.baseNumUnits; i++)
             {
                 (int x, int y) = KwGrid.GetXY(i, 10);
-                //Debug.Log($"GridPos are x:{x}; y:{y}");
-                //float xPosition = startPos.x + i * (unitSize.x + regimentType.positionOffset);
-                //Vector3 pos = startPos + new Vector3(xPosition, unitSize.y, startPos.z);
-                //startPos.x = (UnitSize.x + regimentType.positionOffset) * x;
-                //startPos.y = UnitSize.y;
-                //startPos.z += y;
 
                 Vector3 newPos = startPos;
                 newPos.x = (startPos.x) + (UnitSize.x + regimentType.positionOffset) * (x+1);
                 newPos.y = UnitSize.y;
                 newPos.z = startPos.z + (y+1);
-                //Debug.Log($"Pos at {i} == {newPos}");
                 //last parameter (regimentTransform) set unit as children of the regiment
                 GameObject newUnit = Instantiate(unitPrefab, newPos, regimentTransform.rotation/*, regimentTransform*/);
                 newUnit.name = $"{unitPrefab.name} {i}";
@@ -71,8 +64,7 @@ namespace KaizerWaldCode.RTTUnits
         public void SetSelected(bool enable)
         {
             SelectState = enable;
-            for (int i = 0; i < regimentTransform.childCount; i++)
-                //GetComponentsInChildren<SelectionComponent>()[i].SetSelected(enable);
+            for (int i = 0; i < CurrentSize; i++)
                 Units[i].GetComponent<SelectionComponent>().SetSelected(enable);
         }
         
@@ -80,8 +72,8 @@ namespace KaizerWaldCode.RTTUnits
         public void SetPreselected(bool enable)
         {
             PreselectState = enable;
-            for (int i = 0; i < regimentTransform.childCount; i++)
-                GetComponentsInChildren<SelectionComponent>()[i].SetPreselected(enable);
+            for (int i = 0; i < CurrentSize; i++)
+                Units[i].GetComponent<SelectionComponent>().SetPreselected(enable);
                 
         }
 
