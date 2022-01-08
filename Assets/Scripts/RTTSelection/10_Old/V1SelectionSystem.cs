@@ -3,13 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using KWUtils;
 using Unity.Collections;
-using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
 using static KWUtils.KWRect;
-using static KaizerWaldCode.Utils.KWmesh;
+using static KWUtils.KWmesh;
 using static Unity.Mathematics.math;
 
 using UnityEngine.Rendering;

@@ -5,7 +5,7 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
     public static class KWmesh
     {

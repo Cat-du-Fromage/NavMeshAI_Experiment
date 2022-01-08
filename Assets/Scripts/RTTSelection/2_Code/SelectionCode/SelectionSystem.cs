@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
 
-using static KaizerWaldCode.Utils.KWmesh;
+using static KWUtils.KWmesh;
 using static KWUtils.KWRect;
 
 namespace KaizerWaldCode.RTTSelection

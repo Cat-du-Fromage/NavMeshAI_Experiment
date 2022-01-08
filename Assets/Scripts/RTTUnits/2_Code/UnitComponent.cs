@@ -6,9 +6,9 @@ namespace KaizerWaldCode
 {
     public class UnitComponent : MonoBehaviour
     {
-        [SerializeField] private string name;
+        [SerializeField] private string unitName;
         
-        public string Name => name;
+        public string Name => unitName;
 
         public Transform Regiment { get; private set; }
         public void SetRegiment(Transform regiment) => Regiment = regiment;
