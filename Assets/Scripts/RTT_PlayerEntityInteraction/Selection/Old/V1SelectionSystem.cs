@@ -13,7 +13,7 @@ using static Unity.Mathematics.math;
 
 using UnityEngine.Rendering;
 
-namespace KaizerWaldCode.RTTSelection
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     public class V1SelectionSystem : MonoBehaviour
     {

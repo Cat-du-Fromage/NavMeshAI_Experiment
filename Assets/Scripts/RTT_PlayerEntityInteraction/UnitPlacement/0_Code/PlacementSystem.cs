@@ -1,12 +1,10 @@
 using System;
 using System.Linq;
-using KaizerWaldCode.RTTSelection;
 using KaizerWaldCode.RTTUnits;
 using KWUtils;
 //using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,16 +14,17 @@ using static Unity.Mathematics.math;
 
 using static Unity.Jobs.LowLevel.Unsafe.JobsUtility;
 using static KWUtils.NativeCollectionUtils;
+using quaternion = Unity.Mathematics.quaternion;
 
-namespace KaizerWaldCode.RTTUnitPlacement
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 {
     public class PlacementSystem : MonoBehaviour
     {
         [SerializeField] private GameObject token;
-        private SelectionRegister Selections;
+        private SelectionRegister Register;
         
         //INPUT SYSTEM
-        private PlacementInputController Control;
+        private SelectionInputController Control;
         private InputAction MouseAction;
         
         //RAYCAST
@@ -60,10 +59,10 @@ namespace KaizerWaldCode.RTTUnitPlacement
         private void Awake()
         {
             PlayerCamera = Camera.main;
-            Selections = GetComponent<SelectionRegister>();
+            Register = GetComponent<SelectionRegister>();
             
-            Control ??= new PlacementInputController();
-            MouseAction = Control.PlacementControl.RightClickMove;
+            Control ??= new SelectionInputController();
+            MouseAction = Control.MouseControl.PlacementRightClickMove;
             
             MouseAction.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
         }
@@ -72,7 +71,7 @@ namespace KaizerWaldCode.RTTUnitPlacement
 
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
-            if (Selections.Count == 0 || MouseStartPosition == ctx.ReadValue<Vector2>()) return;
+            if (Register.Selections.Count == 0 || MouseStartPosition == ctx.ReadValue<Vector2>()) return;
             
             MouseStartPosition = ctx.ReadValue<Vector2>();
             StartGroundHit = HitGround(StartRay) ? Hit.point : StartGroundHit;
@@ -80,16 +79,21 @@ namespace KaizerWaldCode.RTTUnitPlacement
 
         private void OnPerformMouseMove(InputAction.CallbackContext ctx)
         {
-            if(!PlacementJobHandle.IsCompleted) PlacementJobHandle.Complete();
+            //Check If There is at least 1 Regiment Selected
+            if(!PlacementJobHandle.IsCompleted) PlacementJobHandle.Complete(); //if previous job not finished we complete it here
+            
             MouseEndPosition = ctx.ReadValue<Vector2>();
+            
             if (MouseEndPosition == MouseStartPosition) return;
             if (HitGround(EndRay))
             {
+                Transform regiment = Register.Selections[0];
+                //Transform regiment = Selections.GetSelections.
+                RegimentComponent regimentComp = regiment.GetComponent<RegimentComponent>();
+                
                 EndGroundHit = Hit.point;
-                if (length(EndGroundHit - StartGroundHit) > 4) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
+                if (length(EndGroundHit - StartGroundHit) > (regimentComp.UnitSize.x * 4)) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
-                    Transform regiment = Selections.GetSelections.ElementAt(0).Value;
-                    RegimentComponent regimentComp = regiment.GetComponent<RegimentComponent>();
                     //Debug.Log($"Get {regimentComp.CurrentSize} should be {regimentComp.GetRegimentType.baseNumUnits}");
                     //TestFormation();
                     using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
@@ -122,27 +126,57 @@ namespace KaizerWaldCode.RTTUnitPlacement
             [ReadOnly] public float3 EndPosition;
             public void Execute(int index, TransformAccess transform)
             {
-                int unitPerRow = (int)floor(length(EndPosition - StartPosition) / FullUnitSize);
-                int numRows = (int)ceil(NumUnits / (float)unitPerRow);
+                int unitPerRow = (int)ceil(length(EndPosition - StartPosition) / FullUnitSize);
+                int numRows = (int)ceil(NumUnits / (float)unitPerRow); //Use to offset last row
             
                 int z = (int)floor((float)index / unitPerRow);
                 int x = index - (z * unitPerRow);
-            
+                
                 float3 direction = normalize(EndPosition - StartPosition);
-                float3 crossDirection = normalize(cross(direction, up()));
-            
-                float3 rowStart = StartPosition + crossDirection * (z * FullUnitSize);
+                float3 crossDirection = normalize(cross(direction, -up()));
+
+                float3 rowStart;
+                
+                if (z == numRows - 1)
+                {
+                    int numUnitLeft = NumUnits - (numRows - 1) * unitPerRow;
+                    float lengthWithLeftUnits = FullUnitSize * numUnitLeft;
+                    float offsetStart = (unitPerRow * FullUnitSize - lengthWithLeftUnits) / 2f;
+                    rowStart = StartPosition + (direction * offsetStart) + crossDirection * (z * FullUnitSize);
+                }
+                else
+                {
+                    rowStart = StartPosition + crossDirection * (z * FullUnitSize);
+                }
+                
                 float3 rowEnd = EndPosition + crossDirection * (z * FullUnitSize);
-                    
+                
                 float3 newDir = normalize(rowEnd - rowStart);
                     
                 float3 unitPos = rowStart + (x * FullUnitSize) * newDir;
-            
-                unitPos.y = 2;
+
+                unitPos.y = 2; // need to delete/replace this
 
                 transform.position = unitPos;
+                transform.rotation = quaternion.LookRotation(-crossDirection, up());
             }
         }
+/*
+        private void OnDrawGizmos()
+        {
+            if (StartGroundHit != Vector3.zero)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(StartGroundHit + Vector3.up, 0.5f);
+            }
+
+            if (EndGroundHit != Vector3.zero)
+            {
+                Gizmos.color = Color.blue;
+                Gizmos.DrawSphere(EndGroundHit + Vector3.up, 0.5f);
+            }
+        }
+        */
     }
     
     //OLD

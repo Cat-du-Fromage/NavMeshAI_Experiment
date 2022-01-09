@@ -2,16 +2,20 @@ using System;
 using System.Collections;
 using KaizerWaldCode.RTTUnits;
 using KWUtils;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
 
 using static KWUtils.KWmesh;
 using static KWUtils.KWRect;
+using static KaizerWaldCode.PlayerEntityInteractions.RTTSelection.SelectionMeshUtils;
 
-namespace KaizerWaldCode.RTTSelection
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     [RequireComponent(typeof(SelectionRegister))]
     public class SelectionSystem : MonoBehaviour
@@ -49,6 +53,11 @@ namespace KaizerWaldCode.RTTSelection
         //NEW INPUT SYSTEM
         private bool IsDragging;
         private bool ShiftKey => Keyboard.current.shiftKey.isPressed;
+        
+        //JOB SYSTEM
+        private NativeArray<RaycastCommand> RaycastCommands;
+        private NativeArray<RaycastHit> RaycastHits;
+        private JobHandle JobHandle;
 
         //INITIALIZATION
         //==============================================================================================================
@@ -66,21 +75,11 @@ namespace KaizerWaldCode.RTTSelection
             MouseCtrl = Control.MouseControl;
             MouseEvents = Control.MouseControl.SelectionMouseLeftClick;
             
-            InitializeMesh();
-            InitializeCollider();
+            SelectionMesh = InitializeMesh(SelectionMeshVertices);
+            SelectionCollider = gameObject.InitializeCollider(SelectionMesh);
+            
             MouseEvents.EnableAllEvents(OnStartMouseClick, OnPerformMoveMouse, OnCancelMouseClick);
         }
-        //INITIALIZATION
-        private void InitializeCollider()
-        {
-            SelectionCollider = gameObject.AddComponent<MeshCollider>();
-            SelectionCollider.convex = true;
-            SelectionCollider.isTrigger = true;
-            SelectionCollider.enabled = false;
-            SelectionCollider.sharedMesh = SelectionMesh;
-        }
-
-        private void InitializeMesh() => SelectionMesh = new Mesh {vertices = SelectionMeshVertices, triangles = CubeVertices };
 
         //EVENTS CALLBACKS
         //==============================================================================================================
@@ -113,7 +112,7 @@ namespace KaizerWaldCode.RTTSelection
             }
             else
             {
-                GetBoxSelectionVertices();
+                UiCorners.GetBoxSelectionVertices(StartMouseClick, EndMouseClick);
                 SelectionCollider.enabled = DragSelection();
                 if (SelectionCollider.enabled) StartCoroutine(DisableAfterSelections());
                 IsDragging = false;
@@ -141,11 +140,7 @@ namespace KaizerWaldCode.RTTSelection
             
             if (hitUnit && CachedUnit.TryGetComponent(out SelectionComponent selectComp))
             {
-                //RegimentSelected = CachedUnit.parent;
-                //Transform regimentFromParent = CachedUnit.parent;
-                //RegimentSelected = regimentFromParent != null ? regimentFromParent : CachedUnit.GetComponent<UnitComponent>().Regiment;
                 RegimentSelected = CachedUnit.GetComponent<UnitComponent>().Regiment;
-                Debug.Log($"Regiment is {RegimentSelected}");
                 if(selectComp.IsSelected) 
                     Register.Remove(RegimentSelected);
                 else 
@@ -158,6 +153,29 @@ namespace KaizerWaldCode.RTTSelection
         /// </summary>
         /// <returns></returns>
         private bool DragSelection()
+        {
+            if (!ShiftKey) Register.Clear();//selectionRegister.DeselectAll();
+            int hitCount = 0; //use to check if we have 4 corners when drag selection
+            for (int i = 0; i < UiCorners.Length; i++)
+            {
+                Ray ray = PlayerCamera.ScreenPointToRay(UiCorners[i]);
+                if (Raycast(ray, out Hit, INFINITY, TerrainLayer)) //only intersect terrain
+                {
+                    SelectionMeshVertices[i] = new Vector3(Hit.point.x, Hit.point.y, Hit.point.z);
+                    SelectionMeshVertices[i + 4] = ray.origin + (Hit.point - ray.origin).normalized * PlayerCamera.nearClipPlane; //Use clip plane of the camera as vertices for the top mesh
+                    hitCount++;
+                    Debug.DrawLine(PlayerCamera.ScreenToWorldPoint(UiCorners[i]), Hit.point, Color.red, 3.0f);
+                }
+            }
+            if (hitCount == 4)
+            {
+                UpdateSelectionMesh(); //CAREFUL must be done here or strange latency occure
+                return true;
+            }
+            return false;
+        }
+        
+        private bool PreselectOnDrag()
         {
             if (!ShiftKey) Register.Clear();//selectionRegister.DeselectAll();
             int hitCount = 0; //use to check if we have 4 corners when drag selection
@@ -212,47 +230,6 @@ namespace KaizerWaldCode.RTTSelection
             if (!IsDragging) return;
             Rect selectRectangle = GetScreenRect(StartMouseClick, EndMouseClick);
             DrawFullScreenRect(selectRectangle, 2, UiColor, UiBorderColor);
-        }
-        
-        /// <summary>
-        /// Define the array "uiCorner" Depending on the position of the startMouseClick according to the current mouse position
-        /// </summary>
-        private void GetBoxSelectionVertices()
-        {
-            if (StartMouseClick.IsLeft(EndMouseClick)) //startMouseClick is Left
-            {
-                if (StartMouseClick.IsAbove(EndMouseClick)) //LeftTop
-                {
-                    UiCorners[0] = StartMouseClick;
-                    UiCorners[1] = new Vector2(EndMouseClick.x, StartMouseClick.y);//top right
-                    UiCorners[2] = new Vector2(StartMouseClick.x, EndMouseClick.y);//bottom left
-                    UiCorners[3] = EndMouseClick;
-                }
-                else //LeftBot
-                {
-                    UiCorners[0] = new Vector2(StartMouseClick.x, EndMouseClick.y);//top left
-                    UiCorners[1] = EndMouseClick;
-                    UiCorners[2] = StartMouseClick;
-                    UiCorners[3] = new Vector2(EndMouseClick.x, StartMouseClick.y);//bottom right
-                }
-            }
-            else //startMouseClick is Right
-            {
-                if (StartMouseClick.IsAbove(EndMouseClick)) //RightTop
-                { 
-                    UiCorners[0] = new Vector2(EndMouseClick.x, StartMouseClick.y);//top left
-                    UiCorners[1] = StartMouseClick;
-                    UiCorners[2] = EndMouseClick;
-                    UiCorners[3] = new Vector2(StartMouseClick.x, EndMouseClick.y);//bottom right
-                }
-                else //RightBot
-                {
-                    UiCorners[0] = EndMouseClick;
-                    UiCorners[1] = new Vector2(StartMouseClick.x, EndMouseClick.y);//top right
-                    UiCorners[2] = new Vector2(EndMouseClick.x, StartMouseClick.y);//bottom left
-                    UiCorners[3] = StartMouseClick;
-                }
-            }
         }
     }
 }

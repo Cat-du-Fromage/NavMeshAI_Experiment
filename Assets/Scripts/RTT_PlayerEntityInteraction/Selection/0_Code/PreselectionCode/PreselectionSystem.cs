@@ -9,7 +9,7 @@ using Unity.Mathematics;
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
 
-namespace KaizerWaldCode.RTTSelection
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     [RequireComponent(typeof(PreselectionRegister))]
     public class PreselectionSystem : MonoBehaviour

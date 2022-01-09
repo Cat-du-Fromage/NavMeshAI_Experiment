@@ -11,7 +11,7 @@
                     "id": "70060649-fd4d-48a4-a6e9-c3a6fa59eeb0",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "initialStateCheck": false
                 },
                 {
@@ -31,6 +31,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "PlacementRightClickMove",
+                    "type": "Value",
+                    "id": "a05635fd-40d8-4065-bfb6-6e0dd63b3d55",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -38,7 +47,7 @@
                     "name": "",
                     "id": "9b3ea6b9-aa5a-46b8-a9da-49d8b82fcf59",
                     "path": "<Keyboard>/shift",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "processors": "",
                     "groups": "",
                     "action": "ShiftClick",
@@ -88,6 +97,39 @@
                     "action": "PreselectMouseMove",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "StartPosition",
+                    "id": "8783b561-bb80-41ab-b211-8350df308664",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PlacementRightClickMove",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "8e37aeb4-a3f3-4c17-b75a-1eb9c115f0ee",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PlacementRightClickMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "db66062a-01fc-4342-8147-b670a62be6cf",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PlacementRightClickMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         }

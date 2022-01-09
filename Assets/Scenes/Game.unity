@@ -496,6 +496,7 @@ GameObject:
   - component: {fileID: 474634973}
   - component: {fileID: 474634972}
   - component: {fileID: 474634974}
+  - component: {fileID: 474634975}
   m_Layer: 0
   m_Name: SelectionManager
   m_TagString: Untagged
@@ -581,6 +582,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   token: {fileID: 6969508022250319429, guid: cf1d57aa67d635346a93778a737f44b5, type: 3}
+--- !u!114 &474634975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474634968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb635cf93c27ad14b91bbb3e1003ee11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShiftPressed: 0
+  LeftClick: 0
 --- !u!1 &693486209
 GameObject:
   m_ObjectHideFlags: 0

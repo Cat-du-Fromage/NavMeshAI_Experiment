@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace KaizerWaldCode.RTTSelection
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     public class SelectionComponent : MonoBehaviour
     {

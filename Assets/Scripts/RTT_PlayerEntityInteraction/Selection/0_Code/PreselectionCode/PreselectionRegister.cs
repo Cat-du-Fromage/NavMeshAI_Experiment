@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using KaizerWaldCode.RTTUnits;
 using UnityEngine;
 
-namespace KaizerWaldCode.RTTSelection
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     public class PreselectionRegister : MonoBehaviour
     {
+        public List<Transform> Preselections { get; } = new List<Transform>();
+        
         private Transform CurrentPreselection;
         //REGIMENT SECTION
 
