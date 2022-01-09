@@ -8,16 +8,16 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Jobs;
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
+
 using static Unity.Jobs.LowLevel.Unsafe.JobsUtility;
 using static KWUtils.NativeCollectionUtils;
 
-namespace UnityTemplateProjects.RTTUnitPlacement
+namespace KaizerWaldCode.RTTUnitPlacement
 {
     public class PlacementSystem : MonoBehaviour
     {
@@ -46,6 +46,10 @@ namespace UnityTemplateProjects.RTTUnitPlacement
         //CACHED POSITION MOUSE IN GAME
         private Vector3 StartGroundHit;
         private Vector3 EndGroundHit;
+        
+        //JOB SYSTEM
+        private TransformAccessArray TransformAccesses;
+        private JobHandle PlacementJobHandle;
 
         private bool HitGround(Ray ray) => Raycast(ray, out Hit, INFINITY, TerrainLayer);
 
@@ -63,12 +67,11 @@ namespace UnityTemplateProjects.RTTUnitPlacement
             
             MouseAction.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
         }
-
+        
         private void OnDestroy() => MouseAction.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
 
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
-            Debug.Log("start");
             if (Selections.Count == 0 || MouseStartPosition == ctx.ReadValue<Vector2>()) return;
             
             MouseStartPosition = ctx.ReadValue<Vector2>();
@@ -77,7 +80,7 @@ namespace UnityTemplateProjects.RTTUnitPlacement
 
         private void OnPerformMouseMove(InputAction.CallbackContext ctx)
         {
-            Debug.Log("perform");
+            if(!PlacementJobHandle.IsCompleted) PlacementJobHandle.Complete();
             MouseEndPosition = ctx.ReadValue<Vector2>();
             if (MouseEndPosition == MouseStartPosition) return;
             if (HitGround(EndRay))
@@ -87,49 +90,21 @@ namespace UnityTemplateProjects.RTTUnitPlacement
                 {
                     Transform regiment = Selections.GetSelections.ElementAt(0).Value;
                     RegimentComponent regimentComp = regiment.GetComponent<RegimentComponent>();
-                    int numTransform = regimentComp.GetComponentsInChildren<Transform>().Length;
-                    Debug.Log($"Get {regimentComp.CurrentSize} should be {regimentComp.GetRegimentType.baseNumUnits}");
+                    //Debug.Log($"Get {regimentComp.CurrentSize} should be {regimentComp.GetRegimentType.baseNumUnits}");
                     //TestFormation();
-                    
-                    
-                    /*
-                    NativeArray<float3> unitPosition = AllocNtvAry<float3>(regimentComp.CurrentSize);
-                    JPlacement placeJob = new JPlacement
+                    using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
                     {
-                        FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
-                        StartPosition = StartGroundHit,
-                        EndPosition = EndGroundHit,
-                        UnitPositions = unitPosition
-                    };
-                    JobHandle jh = placeJob.ScheduleParallel(regimentComp.CurrentSize, JobWorkerCount - 1, default);
-                    */
-                    TransformAccessArray transformsAccess = new TransformAccessArray(regimentComp.Units);
-
-                    JTranslateUnit job2 = new JTranslateUnit
-                    {
-                        NumUnits = regimentComp.CurrentSize,
-                        FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
-                        StartPosition = StartGroundHit,
-                        EndPosition = EndGroundHit
-                    };
-                    JobHandle jh2 = job2.Schedule(transformsAccess);
-                    jh2.Complete();
-
-
-                    /*
-                    for (int i = 0; i < unitPosition.Length; i++)
-                    {
-                        regiment.transform.GetChild(i).position = unitPosition[i];
+                        JUnitsTokenPlacement job = new JUnitsTokenPlacement
+                        {
+                            NumUnits = regimentComp.CurrentSize,
+                            FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
+                            StartPosition = StartGroundHit,
+                            EndPosition = EndGroundHit
+                        };
+                        PlacementJobHandle = job.Schedule(TransformAccesses);
                     }
-                    */
-                    //unitPosition.Dispose();
-                    transformsAccess.Dispose();
                 }
             }
-            
-            //Check Length end-Start
-
-            //
         }
 
         private void OnCancelMouseClick(InputAction.CallbackContext ctx)
@@ -137,10 +112,42 @@ namespace UnityTemplateProjects.RTTUnitPlacement
             Debug.Log("cancel");
             //Apply new placement
         }
+        
+        //[BurstCompile(CompileSynchronously = true)]
+        private struct JUnitsTokenPlacement : IJobParallelForTransform
+        {
+            [ReadOnly] public int NumUnits;
+            [ReadOnly] public float FullUnitSize;
+            [ReadOnly] public float3 StartPosition;
+            [ReadOnly] public float3 EndPosition;
+            public void Execute(int index, TransformAccess transform)
+            {
+                int unitPerRow = (int)floor(length(EndPosition - StartPosition) / FullUnitSize);
+                int numRows = (int)ceil(NumUnits / (float)unitPerRow);
+            
+                int z = (int)floor((float)index / unitPerRow);
+                int x = index - (z * unitPerRow);
+            
+                float3 direction = normalize(EndPosition - StartPosition);
+                float3 crossDirection = normalize(cross(direction, up()));
+            
+                float3 rowStart = StartPosition + crossDirection * (z * FullUnitSize);
+                float3 rowEnd = EndPosition + crossDirection * (z * FullUnitSize);
+                    
+                float3 newDir = normalize(rowEnd - rowStart);
+                    
+                float3 unitPos = rowStart + (x * FullUnitSize) * newDir;
+            
+                unitPos.y = 2;
 
+                transform.position = unitPos;
+            }
+        }
     }
-
+    
+    //OLD
     //[BurstCompile(CompileSynchronously = true)]
+    /*
     public struct JPlacement : IJobFor
     {
         [ReadOnly]public float FullUnitSize;
@@ -171,35 +178,5 @@ namespace UnityTemplateProjects.RTTUnitPlacement
             UnitPositions[index] = unitPos;
         }
     }
-
-    //[BurstCompile(CompileSynchronously = true)]
-    public struct JTranslateUnit : IJobParallelForTransform
-    {
-        [ReadOnly] public int NumUnits;
-        [ReadOnly] public float FullUnitSize;
-        [ReadOnly] public float3 StartPosition;
-        [ReadOnly] public float3 EndPosition;
-        public void Execute(int index, TransformAccess transform)
-        {
-            int unitPerRow = (int)floor(length(EndPosition - StartPosition) / FullUnitSize);
-            int numRows = (int)ceil(NumUnits / (float)unitPerRow);
-            
-            int z = (int)floor((float)index / unitPerRow);
-            int x = index - (z * unitPerRow);
-            
-            float3 direction = normalize(EndPosition - StartPosition);
-            float3 crossDirection = normalize(cross(direction, up()));
-            
-            float3 rowStart = StartPosition + crossDirection * (z * FullUnitSize);
-            float3 rowEnd = EndPosition + crossDirection * (z * FullUnitSize);
-                    
-            float3 newDir = normalize(rowEnd - rowStart);
-                    
-            float3 unitPos = rowStart + (x * FullUnitSize) * newDir;
-            
-            unitPos.y = 2;
-
-            transform.position = unitPos;
-        }
-    }
+    */
 }

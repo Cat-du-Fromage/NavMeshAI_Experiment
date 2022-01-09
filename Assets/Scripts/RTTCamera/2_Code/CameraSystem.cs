@@ -1,6 +1,12 @@
+using System;
 using KWUtils;
+using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Jobs;
+
+using static KWUtils.KWmath;
 using static Unity.Mathematics.math;
 
 namespace KaizerWaldCode.RTTCamera
@@ -12,117 +18,127 @@ namespace KaizerWaldCode.RTTCamera
 
         [SerializeField]private CameraInputData cameraData;
         
-        private Transform cameraTransform;
-        private Controls controls;
+        private Transform CameraTransform;
+        private Controls CameraControls;
         
-        private bool canRotate = false;
-        //private int sprint;
-        private bool IsSprinting = false;
-        private float zoom;
-        private Vector2 mouseStartPosition, mouseEndPosition;
-        private Vector2 moveAxis;
+        private bool IsRotating;
+        private bool IsSprinting;
+        private float Zoom;
+        private Vector2 MouseStartPosition, MouseEndPosition;
+        private Vector2 MoveAxis;
+
+        private Vector3 ZAxisRotation;
+        private Vector3 XAxisRotation;
+        
+        private float TargetYaw;
+        private float TargetPitch;
         
         //INPUT ACTIONS
-        InputAction ZoomCameraAction => controls.CameraControl.Zoom;
-        InputAction MoveAction => controls.CameraControl.Mouvement;
-        InputAction RotationAction => controls.CameraControl.Rotation;
-        InputAction SprintAction => controls.CameraControl.Faster;
+        InputAction ZoomCameraAction => CameraControls.CameraControl.Zoom;
+        InputAction MoveAction => CameraControls.CameraControl.Mouvement;
+        InputAction RotationAction => CameraControls.CameraControl.Rotation;
+        InputAction SprintAction => CameraControls.CameraControl.Faster;
         
         //UPDATED MOVE SPEED
         private int MoveSpeed => IsSprinting ? cameraData.baseMoveSpeed * cameraData.sprint : cameraData.baseMoveSpeed;
         
+        
         private void Awake()
         {
-            controls ??= new Controls();
-            controls.Enable();
+            CameraControls ??= new Controls();
+            CameraControls.Enable();
             
-            cameraTransform = transform;
-            //CameraData.rotationSpeed = max(1, CameraData.rotationSpeed);
-            //baseMoveSpeed = max(1, baseMoveSpeed);
-            //zoomSpeed = max(1, zoomSpeed);
-            //sprint = max(1, sprint);
+            CameraTransform = transform;
         }
 
         private void Start()
         {
-            ZoomCameraAction.EnablePerformCancelEvent(ZoomCamera, StopZoomCamera);
-            MoveAction.EnablePerformCancelEvent(MoveCamera, StopMoveCamera);
-            RotationAction.EnablePerformCancelEvent(RotateCamera, StopRotateCamera);
-            SprintAction.EnableStartCancelEvent(SprintCamera, StopSprintCamera);
+            MoveAction.EnablePerformCancelEvent(PerformMove, CancelMove);
+            SprintAction.EnableStartCancelEvent(StartSprint, CancelSprint);
+            ZoomCameraAction.EnablePerformCancelEvent(PerformZoom, CancelZoom);
+            RotationAction.EnableAllEvents(StartRotation, PerformRotation, CancelRotation);
         }
 
         private void OnDestroy()
         {
-            ZoomCameraAction.DisablePerformCancelEvent(ZoomCamera, StopZoomCamera);
-            MoveAction.DisablePerformCancelEvent(MoveCamera, StopMoveCamera);
-            RotationAction.DisablePerformCancelEvent(RotateCamera, StopRotateCamera);
-            SprintAction.EnableStartCancelEvent(SprintCamera, StopSprintCamera);
+            MoveAction.DisablePerformCancelEvent(PerformMove, CancelMove);
+            SprintAction.DisableStartCancelEvent(StartSprint, CancelSprint);
+            ZoomCameraAction.DisablePerformCancelEvent(PerformZoom, CancelZoom);
+            RotationAction.DisableAllEvents(StartRotation, PerformRotation, CancelRotation);
         }
+        
 
         private void Update()
         {
-            if (canRotate)
-                SetCameraRotation();
+            if (IsRotating) SetCameraRotation();
 
-            if (moveAxis != Vector2.zero)
-                MoveCamera();
+            if (MoveAxis != Vector2.zero) MoveCamera(CameraTransform.position, CameraTransform.forward, CameraTransform.right);
 
-            if (zoom != 0)
-                cameraTransform.position = mad(up(), zoom, transform.position);
+            if (Zoom != 0) CameraTransform.position = mad(up(), Zoom, transform.position);
         }
 
-        private void MoveCamera()
+        private void MoveCamera(Vector3 cameraPosition, Vector3 cameraForward, Vector3 cameraRight)
         {
             //real forward of the camera (aware of the rotation)
-            Vector3 currentCameraForward = new Vector3(cameraTransform.forward.x, 0, cameraTransform.forward.z);
-            Vector3 zAxis = Vector3.zero;
-            Vector3 xAxis = Vector3.zero;
-
-            if (moveAxis.x != 0) xAxis = moveAxis.x > 0 ? -cameraTransform.right : cameraTransform.right;
-            if (moveAxis.y != 0) zAxis = moveAxis.y > 0 ? currentCameraForward : -currentCameraForward;
-            cameraTransform.position += (xAxis + zAxis) * (max(1f,cameraTransform.position.y) * MoveSpeed * Time.deltaTime);
+            Vector3 cameraForwardXZ = new Vector3(cameraForward.x, 0, cameraForward.z);
+            
+            XAxisRotation = MoveAxis.x != 0 ? (MoveAxis.x > 0 ? -cameraRight : cameraRight) : Vector3.zero;
+            ZAxisRotation = MoveAxis.y != 0 ? (MoveAxis.y > 0 ? cameraForwardXZ : -cameraForwardXZ) : Vector3.zero;
+            
+            CameraTransform.position += (XAxisRotation + ZAxisRotation) * (max(1f,cameraPosition.y) * MoveSpeed * Time.deltaTime);
         }
-
+        
         private void SetCameraRotation()
         {
-            mouseEndPosition = Mouse.current.position.ReadValue();
-            
-            if (mouseEndPosition != mouseStartPosition)
+            if (MouseEndPosition != MouseStartPosition)
             {
-                float distanceX = (mouseEndPosition - mouseStartPosition).x * cameraData.rotationSpeed;
-                float distanceY = (mouseEndPosition - mouseStartPosition).y * cameraData.rotationSpeed;
-                
-                cameraTransform.Rotate(0f, distanceX * Time.deltaTime, 0f, Space.World);
-                cameraTransform.Rotate(-distanceY * Time.deltaTime, 0f, 0f, Space.Self);
+                float distanceX = (MouseEndPosition - MouseStartPosition).x * cameraData.rotationSpeed;
+                float distanceY = (MouseEndPosition - MouseStartPosition).y * cameraData.rotationSpeed;
 
-                mouseStartPosition = mouseEndPosition;
+                float deltaTime = Time.deltaTime;
+                
+                Quaternion worldRot = CameraTransform.rotation.RotateFWorld(0f, distanceX * deltaTime,0f);
+                CameraTransform.rotation = worldRot;
+
+                Quaternion selfRot = CameraTransform.localRotation.RotateFSelf(-distanceY * deltaTime, 0f, 0f);
+                CameraTransform.localRotation =  selfRot;
+                
+                //CameraTransform.Rotate(0f, distanceX * deltaTime, 0f, Space.World);
+                //CameraTransform.Rotate(-distanceY * deltaTime, 0f, 0f, Space.Self);
+
+                MouseStartPosition = MouseEndPosition;
             }
         }
 
         //EVENTS CALLBACK
         //==============================================================================================================
         
-        //ROTATION
-        private void RotateCamera(InputAction.CallbackContext ctx)
+        //Rotation
+        //====================
+        private void StartRotation(InputAction.CallbackContext ctx)
         {
-            mouseStartPosition = Mouse.current.position.ReadValue();
-            canRotate = true;
+            MouseStartPosition = ctx.ReadValue<Vector2>();
+            IsRotating = true;
         }
-        private void StopRotateCamera(InputAction.CallbackContext ctx) => canRotate = false;
         
-        //MOVE
-        private void MoveCamera(InputAction.CallbackContext ctx) => moveAxis = ctx.ReadValue<Vector2>();
-        private void StopMoveCamera(InputAction.CallbackContext ctx) => moveAxis = Vector2.zero;
-        //ZOOM
-        private void ZoomCamera(InputAction.CallbackContext ctx) => zoom = ctx.ReadValue<float>();
-        private void StopZoomCamera(InputAction.CallbackContext ctx) => zoom = 0;
-        //SPRINT
-        private void SprintCamera(InputAction.CallbackContext ctx)
-        {
-            Debug.Log(ctx.started);
-            IsSprinting = true;
-        }
+        private void PerformRotation(InputAction.CallbackContext ctx) => MouseEndPosition = ctx.ReadValue<Vector2>();
 
-        private void StopSprintCamera(InputAction.CallbackContext context) => IsSprinting = false;
+        private void CancelRotation(InputAction.CallbackContext ctx) => IsRotating = false;
+        
+        //Sprint
+        //====================
+        private void StartSprint(InputAction.CallbackContext ctx) => IsSprinting = true;
+
+        private void CancelSprint(InputAction.CallbackContext context) => IsSprinting = false;
+
+        //Move
+        //====================
+        private void PerformMove(InputAction.CallbackContext ctx) => MoveAxis = ctx.ReadValue<Vector2>();
+        private void CancelMove(InputAction.CallbackContext ctx) => MoveAxis = Vector2.zero;
+
+        //Zoom
+        //====================
+        private void PerformZoom(InputAction.CallbackContext ctx) => Zoom = ctx.ReadValue<float>();
+        private void CancelZoom(InputAction.CallbackContext ctx) => Zoom = 0;
     }
 }

@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 91875583}
   - component: {fileID: 91875582}
   m_Layer: 0
-  m_Name: Regiment (1)
+  m_Name: Regiment1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -154,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   regimentType: {fileID: 11400000, guid: 91baa9550984cc84bbd2996fb7624f3b, type: 2}
   unitPrefab: {fileID: 854274783225195262, guid: 2bcf48ba373478345ac380d7fc01ec8f, type: 3}
+  positionTokenPrefab: {fileID: 6969508022250319429, guid: cf1d57aa67d635346a93778a737f44b5, type: 3}
 --- !u!4 &91875583
 Transform:
   m_ObjectHideFlags: 0
@@ -323,7 +324,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh29674
+  m_Name: pb_Mesh29666
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1017,6 +1018,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   regimentType: {fileID: 11400000, guid: 91baa9550984cc84bbd2996fb7624f3b, type: 2}
   unitPrefab: {fileID: 854274783225195262, guid: 2bcf48ba373478345ac380d7fc01ec8f, type: 3}
+  positionTokenPrefab: {fileID: 6969508022250319429, guid: cf1d57aa67d635346a93778a737f44b5, type: 3}
 --- !u!4 &2079750374
 Transform:
   m_ObjectHideFlags: 0

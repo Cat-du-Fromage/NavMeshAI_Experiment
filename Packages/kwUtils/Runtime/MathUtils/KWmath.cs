@@ -34,6 +34,14 @@ namespace KWUtils
             return max(valMin, min(input, valMax));
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float ClampAngle(float lfAngle, float lfMin, float lfMax)
+        {
+            if (lfAngle < -360f) lfAngle += 360f;
+            if (lfAngle > 360f) lfAngle -= 360f;
+            return Mathf.Clamp(lfAngle, lfMin, lfMax);
+        }
+        
         /// <summary>
         /// Multiply value by itself (v * v)
         /// </summary>
@@ -272,21 +280,54 @@ namespace KWUtils
         
         //From https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Transform/ScriptBindings/Transform.bindings.cs
         //NOT TESTED YET
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static quaternion RotateFromSelf(this quaternion currentRotation, float3 eulers)
+        public static Quaternion RotateFSelf(this Quaternion localRotation, float x, float y, float z)
+        {
+            Quaternion eulerRot = Quaternion.Euler(x, y, z);
+            localRotation *= eulerRot;
+            return localRotation;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static quaternion RotateFromSelf(this quaternion localRotation, float3 eulers)
         {
             quaternion eulerRot = EulerZXY(eulers.x, eulers.y, eulers.z);
-            currentRotation = mul(currentRotation,eulerRot);
-            return currentRotation;
+            localRotation = mul(localRotation,eulerRot);
+            return localRotation;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Quaternion RotateFWorld(this Quaternion rotation, float x, float y, float z)
+        {
+            Quaternion eulerRot = Quaternion.Euler(x, y, z);
+            rotation *= (Quaternion.Inverse(rotation) * eulerRot * rotation);
+            return rotation;
         }
         
         //NOT TESTED YET
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static quaternion RotateFromWorld(this quaternion currentRotation, float3 eulers)
+        public static quaternion RotateFromWorld(this quaternion rotation, float3 eulers)
         {
             quaternion eulerRot = EulerZXY(eulers.x, eulers.y, eulers.z);
-            currentRotation = mul(currentRotation, Quaternion.Inverse(currentRotation) * eulerRot * currentRotation);
-            return currentRotation;
+            //rotation = rotation * inverse(rotation) * eulerRot * rotation;
+            rotation =mul(rotation, mul(mul(inverse(rotation), eulerRot), rotation));
+            return rotation;
         }
+        
+        
+        /*
+         EXEMPLES : Careful with conversion with radians!
+         Rotate world Space
+            quaternion mathCamerarRotation = CameraTransform.rotation;
+            quaternion worldRot = mathCamerarRotation.RotateFromWorld(new float3(0f, radians(distanceX * deltaTime),0f));
+            CameraTransform.rotation = worldRot;
+         Rotate Self Space
+            quaternion mathCameraLocalRotation = CameraTransform.localRotation;//need to be reset after first rotation
+            quaternion selfRot = mathCameraLocalRotation.RotateFromSelf(new float3(radians(-distanceY * deltaTime), 0f, 0f));
+            CameraTransform.localRotation =  selfRot;
+         
+         */
+         
     }
 }

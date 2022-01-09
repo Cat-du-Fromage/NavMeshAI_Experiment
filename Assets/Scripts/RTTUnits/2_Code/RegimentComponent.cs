@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using KaizerWaldCode.RTTSelection;
+using KaizerWaldCode.RTTUnitPlacement;
 using KaizerWaldCode.Utils;
 using UnityEngine;
 
@@ -13,8 +15,10 @@ namespace KaizerWaldCode.RTTUnits
     {
         [SerializeField] private RegimentType regimentType;
         [SerializeField] private GameObject unitPrefab;
+        [SerializeField] private GameObject positionTokenPrefab;
 
         public Transform[] Units { get; private set; }
+        public Transform[] PositionTokens { get; private set; }
 
         private Transform regimentTransform;
         public Vector3 UnitSize { get; private set; }
@@ -31,6 +35,8 @@ namespace KaizerWaldCode.RTTUnits
         private void Awake()
         {
             Units = new Transform[regimentType.baseNumUnits];
+            PositionTokens = new Transform[regimentType.baseNumUnits];
+            
             regimentTransform = transform;
             UnitSize = unitPrefab.GetComponentInChildren<MeshFilter>().sharedMesh.bounds.size; //z is also valid
             CreateRegimentMembers();
@@ -52,12 +58,41 @@ namespace KaizerWaldCode.RTTUnits
                 newPos.x = (startPos.x) + (UnitSize.x + regimentType.positionOffset) * (x+1);
                 newPos.y = UnitSize.y;
                 newPos.z = startPos.z + (y+1);
-                //last parameter (regimentTransform) set unit as children of the regiment
-                GameObject newUnit = Instantiate(unitPrefab, newPos, regimentTransform.rotation/*, regimentTransform*/);
-                newUnit.name = $"{unitPrefab.name} {i}";
-                newUnit.GetComponent<UnitComponent>().SetRegiment(transform);
-                Units[i] = newUnit.transform;
+
+                Units[i] = CreateUnit(i, newPos);
+                PositionTokens[i] = CreatePositionToken(i, newPos);
             }
+        }
+
+        /// <summary>
+        /// Create a single Unit
+        /// </summary>
+        /// <param name="index">index of the unit in the regiment</param>
+        /// <param name="position">position to spawn</param>
+        /// <returns></returns>
+        private Transform CreateUnit(int index, Vector3 position)
+        {
+            GameObject newUnit = Instantiate(unitPrefab, position, regimentTransform.rotation) ;
+            newUnit.name = $"{regimentTransform.name}_{unitPrefab.name}{index}";
+            newUnit.GetComponent<UnitComponent>().SetRegiment(transform);
+            return newUnit.transform;
+        }
+        
+        /// <summary>
+        /// Create a single Unit
+        /// </summary>
+        /// <param name="index">index of the unit in the regiment</param>
+        /// <param name="position">position to spawn</param>
+        /// <returns></returns>
+        private Transform CreatePositionToken(int index, Vector3 position)
+        {
+            Vector3 tokenPosition = position;
+            tokenPosition.y -= UnitSize.y * 0.9f - 1; // -1 because terrain height
+            
+            GameObject newToken = Instantiate(positionTokenPrefab, tokenPosition, regimentTransform.rotation) ;
+            newToken.name = $"{unitPrefab.name}{index}_{positionTokenPrefab.name}";
+            newToken.GetComponent<PositionTokenComponent>().AttachToUnit(Units[index]);
+            return newToken.transform;
         }
         
         //SetSelected(bool) : select/deselect all units
@@ -74,7 +109,6 @@ namespace KaizerWaldCode.RTTUnits
             PreselectState = enable;
             for (int i = 0; i < CurrentSize; i++)
                 Units[i].GetComponent<SelectionComponent>().SetPreselected(enable);
-                
         }
 
     }
