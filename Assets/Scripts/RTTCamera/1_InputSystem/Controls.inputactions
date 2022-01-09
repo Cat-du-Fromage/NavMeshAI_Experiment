@@ -1,5 +1,5 @@
 {
-    "name": "CameraController",
+    "name": "Controls",
     "maps": [
         {
             "name": "CameraControl",
@@ -11,7 +11,8 @@
                     "id": "2e5af36a-c53f-4b86-ac05-cc8e7ddc3f24",
                     "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Rotation",
@@ -19,7 +20,8 @@
                     "id": "a3b8fd41-2529-4c53-b34e-4779a5d95d24",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Press"
+                    "interactions": "Press",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Zoom",
@@ -27,7 +29,8 @@
                     "id": "4092d86b-2351-447c-892d-8fbfe31a9362",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Faster",
@@ -35,7 +38,8 @@
                     "id": "46c185b5-c186-4cbc-bdcb-40093f85076a",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "Press(behavior=2)",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [

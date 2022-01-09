@@ -1,35 +1,35 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Unity.Mathematics;
-using Unity.VisualScripting;
-using UnityEngine.InputSystem.Interactions;
-
-using static KWUtils.KWmath;
-
 using static Unity.Mathematics.math;
-using float3 = Unity.Mathematics.float3;
-using float2 = Unity.Mathematics.float2;
 
 namespace KaizerWaldCode.RTTCamera
 {
     public class CameraSystem : MonoBehaviour
     {
-        [Min(1)]
-        [SerializeField] private int rotationSpeed, baseMoveSpeed, zoomSpeed;
+        //[Min(1)]
+        //[SerializeField] private int rotationSpeed, baseMoveSpeed, zoomSpeed;
 
+        [SerializeField]private CameraInputData cameraData;
+        
+        private Transform cameraTransform;
         private Controls controls;
         
         private bool canRotate = false;
-        private int sprint;
+        //private int sprint;
+        private bool IsSprinting = false;
         private float zoom;
         private Vector2 mouseStartPosition, mouseEndPosition;
         private Vector2 moveAxis;
-        private Transform cameraTransform;
-        private int MoveSpeed => baseMoveSpeed * sprint;
+        
+        //INPUT ACTIONS
+        InputAction ZoomCameraAction => controls.CameraControl.Zoom;
+        InputAction MoveAction => controls.CameraControl.Mouvement;
+        InputAction RotationAction => controls.CameraControl.Rotation;
+        InputAction SprintAction => controls.CameraControl.Faster;
+        
+        //UPDATED MOVE SPEED
+        private int MoveSpeed => IsSprinting ? cameraData.baseMoveSpeed * cameraData.sprint : cameraData.baseMoveSpeed;
         
         private void Awake()
         {
@@ -37,26 +37,26 @@ namespace KaizerWaldCode.RTTCamera
             controls.Enable();
             
             cameraTransform = transform;
-            rotationSpeed = max(1, rotationSpeed);
-            baseMoveSpeed = max(1, baseMoveSpeed);
-            zoomSpeed = max(1, zoomSpeed);
-            sprint = max(1, sprint);
+            //CameraData.rotationSpeed = max(1, CameraData.rotationSpeed);
+            //baseMoveSpeed = max(1, baseMoveSpeed);
+            //zoomSpeed = max(1, zoomSpeed);
+            //sprint = max(1, sprint);
         }
 
         private void Start()
         {
-            MovementEvents(true);
-            ZoomEvents(true);
-            RotationEvents(true);
-            SprintEvents(true);
+            ZoomCameraAction.EnablePerformCancelEvent(ZoomCamera, StopZoomCamera);
+            MoveAction.EnablePerformCancelEvent(MoveCamera, StopMoveCamera);
+            RotationAction.EnablePerformCancelEvent(RotateCamera, StopRotateCamera);
+            SprintAction.EnableStartCancelEvent(SprintCamera, StopSprintCamera);
         }
 
         private void OnDestroy()
         {
-            MovementEvents(false);
-            ZoomEvents(false);
-            RotationEvents(false);
-            SprintEvents(false);
+            ZoomCameraAction.DisablePerformCancelEvent(ZoomCamera, StopZoomCamera);
+            MoveAction.DisablePerformCancelEvent(MoveCamera, StopMoveCamera);
+            RotationAction.DisablePerformCancelEvent(RotateCamera, StopRotateCamera);
+            SprintAction.EnableStartCancelEvent(SprintCamera, StopSprintCamera);
         }
 
         private void Update()
@@ -89,8 +89,8 @@ namespace KaizerWaldCode.RTTCamera
             
             if (mouseEndPosition != mouseStartPosition)
             {
-                float distanceX = (mouseEndPosition - mouseStartPosition).x * rotationSpeed;
-                float distanceY = (mouseEndPosition - mouseStartPosition).y * rotationSpeed;
+                float distanceX = (mouseEndPosition - mouseStartPosition).x * cameraData.rotationSpeed;
+                float distanceY = (mouseEndPosition - mouseStartPosition).y * cameraData.rotationSpeed;
                 
                 cameraTransform.Rotate(0f, distanceX * Time.deltaTime, 0f, Space.World);
                 cameraTransform.Rotate(-distanceY * Time.deltaTime, 0f, 0f, Space.Self);
@@ -117,70 +117,12 @@ namespace KaizerWaldCode.RTTCamera
         private void ZoomCamera(InputAction.CallbackContext ctx) => zoom = ctx.ReadValue<float>();
         private void StopZoomCamera(InputAction.CallbackContext ctx) => zoom = 0;
         //SPRINT
-        private void SprintCamera(InputAction.CallbackContext context) => sprint = 3;
-        private void StopSprintCamera(InputAction.CallbackContext context) => sprint = 1;
-        
-        //ENABLE/DISABLE EVENTS
-        //==============================================================================================================
-        
-        private void ZoomEvents(bool enable)
+        private void SprintCamera(InputAction.CallbackContext ctx)
         {
-            InputAction zoomCamera = controls.CameraControl.Zoom;
-            if (enable)
-            {
-                zoomCamera.performed += ZoomCamera;
-                zoomCamera.canceled += StopZoomCamera;
-            }
-            else
-            {
-                zoomCamera.performed -= ZoomCamera;
-                zoomCamera.canceled -= StopZoomCamera;
-            }
+            Debug.Log(ctx.started);
+            IsSprinting = true;
         }
-        
-        private void MovementEvents(bool enable)
-        {
-            InputAction move = controls.CameraControl.Mouvement;
-            if (enable)
-            {
-                move.performed += MoveCamera;
-                move.canceled += StopMoveCamera;
-            }
-            else
-            {
-                move.performed -= MoveCamera;
-                move.canceled -= StopMoveCamera;
-            }
-        }
-        
-        private void RotationEvents(bool enable)
-        {
-            InputAction rotation = controls.CameraControl.Rotation;
-            if (enable)
-            {
-                rotation.performed += RotateCamera;
-                rotation.canceled += StopRotateCamera;
-            }
-            else
-            {
-                rotation.performed -= RotateCamera;
-                rotation.canceled -= StopRotateCamera;
-            }
-        }
-        
-        private void SprintEvents(bool enable)
-        {
-            InputAction faster = controls.CameraControl.Faster;
-            if (enable)
-            {
-                faster.performed += SprintCamera;
-                faster.canceled += StopSprintCamera;
-            }
-            else
-            {
-                faster.performed -= SprintCamera;
-                faster.canceled -= StopSprintCamera;
-            }
-        }
+
+        private void StopSprintCamera(InputAction.CallbackContext context) => IsSprinting = false;
     }
 }
