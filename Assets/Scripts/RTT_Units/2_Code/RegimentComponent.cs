@@ -99,7 +99,7 @@ namespace KaizerWaldCode.RTTUnits
         {
             IsSelected = enable;
             for (int i = 0; i < CurrentSize; i++)
-                Units[i].GetComponent<SelectionComponent>().SetSelected(enable);
+                Units[i].GetComponent<ISelectable>().SetSelected(enable);
         }
         
         //SetSelected(bool) : select/deselect all units
