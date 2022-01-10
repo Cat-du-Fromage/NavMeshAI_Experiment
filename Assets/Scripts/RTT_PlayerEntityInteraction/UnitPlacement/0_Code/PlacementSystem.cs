@@ -80,22 +80,20 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private void OnPerformMouseMove(InputAction.CallbackContext ctx)
         {
             //Check If There is at least 1 Regiment Selected
-            if(!PlacementJobHandle.IsCompleted) PlacementJobHandle.Complete(); //if previous job not finished we complete it here
-            
+            Debug.Log($"JobComplete? {PlacementJobHandle.IsCompleted}");
+            /*if(!PlacementJobHandle.IsCompleted)*/ PlacementJobHandle.Complete(); //if previous job not finished we complete it here
             MouseEndPosition = ctx.ReadValue<Vector2>();
             
+            if( Register.Selections.Count == 0) return;
             if (MouseEndPosition == MouseStartPosition) return;
+            
             if (HitGround(EndRay))
             {
                 Transform regiment = Register.Selections[0];
-                //Transform regiment = Selections.GetSelections.
                 RegimentComponent regimentComp = regiment.GetComponent<RegimentComponent>();
-                
                 EndGroundHit = Hit.point;
                 if (length(EndGroundHit - StartGroundHit) > (regimentComp.UnitSize.x * 4)) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
-                    //Debug.Log($"Get {regimentComp.CurrentSize} should be {regimentComp.GetRegimentType.baseNumUnits}");
-                    //TestFormation();
                     using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
                     {
                         JUnitsTokenPlacement job = new JUnitsTokenPlacement

@@ -15,18 +15,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "SelectionMouseLeftClick",
+                    "name": "PreselectMouseMove",
                     "type": "Value",
-                    "id": "9de3c399-d817-416b-8f67-0b5b7e24276b",
+                    "id": "5aed991a-fc19-4bce-b371-d274db86314f",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "PreselectMouseMove",
+                    "name": "SelectionMouseLeftClick",
                     "type": "Value",
-                    "id": "5aed991a-fc19-4bce-b371-d274db86314f",
+                    "id": "9de3c399-d817-416b-8f67-0b5b7e24276b",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
@@ -88,17 +88,6 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "",
-                    "id": "be75f95a-5d5f-4e46-ae71-09118c68563d",
-                    "path": "<Mouse>/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "PreselectMouseMove",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
                     "name": "StartPosition",
                     "id": "8783b561-bb80-41ab-b211-8350df308664",
                     "path": "OneModifier",
@@ -130,6 +119,17 @@
                     "action": "PlacementRightClickMove",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "be75f95a-5d5f-4e46-ae71-09118c68563d",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PreselectMouseMove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

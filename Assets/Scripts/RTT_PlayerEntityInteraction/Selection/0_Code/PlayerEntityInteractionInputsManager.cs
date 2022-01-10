@@ -5,21 +5,25 @@ using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+using static Unity.Mathematics.math;
+
 namespace KaizerWaldCode.PlayerEntityInteractions
 {
     public class PlayerEntityInteractionInputsManager : MonoBehaviour
     {
         private SelectionInputController Control;
-        private SelectionInputController.MouseControlActions MouseCtrl;
-        private InputAction SelectionEvents;
+        public SelectionInputController.MouseControlActions MouseCtrl { get; private set; }
+        public InputAction SelectionEvents { get; private set; }
         
         //Selection Datas
 
-        public bool ShiftPressed = false;
-        public bool LeftClick = false;
+        public bool ShiftPressed{ get; private set; }
+        public bool LeftClick{ get; private set; }
+        public bool IsDragging{ get; private set; }
+
+        public Vector2 StartMouseClick{ get; private set; }
         
-        private Vector2 StartMouseClick = Vector2.zero;
-        private Vector2 EndMouseClick = Vector2.zero;
+        public readonly Vector2[] EndMouseClick = new Vector2[2];
 
         private void OnEnable() => Control.Enable();
         private void OnDisable() => Control.Disable();
@@ -31,28 +35,42 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             SelectionEvents = Control.MouseControl.SelectionMouseLeftClick;
             
             Control.MouseControl.ShiftClick.EnableStartCancelEvent(OnStartShift, OnCancelShift);
-            SelectionEvents.EnableAllEvents(OnStartMouseClick, OnPerformMoveMouse, OnCancelMouseClick);
+            SelectionEvents.EnableAllEvents(OnStartMouseClick, OnPerformLeftClickMoveMouse, OnCancelMouseClick);
         }
 
-        
+        private void OnDestroy()
+        {
+            Control.MouseControl.ShiftClick.DisableStartCancelEvent(OnStartShift, OnCancelShift);
+            SelectionEvents.DisableAllEvents(OnStartMouseClick, OnPerformLeftClickMoveMouse, OnCancelMouseClick);
+        }
+
         private void OnStartShift(InputAction.CallbackContext ctx) => ShiftPressed = true;
         private void OnCancelShift(InputAction.CallbackContext ctx) => ShiftPressed = false;
-
+        
+        //LEFT CLICK + MOUSE MOVE
+        //==============================================================================================================
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
             StartMouseClick = ctx.ReadValue<Vector2>();
             LeftClick = true;
         }
         
-        private void OnPerformMoveMouse(InputAction.CallbackContext ctx)
+        private void OnPerformLeftClickMoveMouse(InputAction.CallbackContext ctx)
         {
-            EndMouseClick = ctx.ReadValue<Vector2>();
+            if(EndMouseClick[0] != ctx.ReadValue<Vector2>()) //this way we can compare arr[0] and arr[1] in other systems
+            {
+                EndMouseClick[0] = ctx.ReadValue<Vector2>(); //swap : new current [0]
+                (EndMouseClick[0], EndMouseClick[1]) = (EndMouseClick[1], EndMouseClick[0]); //swap : current become previous 
+                
+            }
+            IsDragging = (EndMouseClick[1] - StartMouseClick).sqrMagnitude > 200;
         }
         
         private void OnCancelMouseClick(InputAction.CallbackContext ctx)
         {
             LeftClick = false;
+            IsDragging = false;
         }
-        
+
     }
 }
