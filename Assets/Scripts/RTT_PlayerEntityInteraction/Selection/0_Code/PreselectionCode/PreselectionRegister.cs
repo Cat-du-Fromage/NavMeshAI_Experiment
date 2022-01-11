@@ -8,6 +8,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     public class PreselectionRegister : MonoBehaviour
     {
+        
         public HashSet<Transform> Preselections { get; } = new HashSet<Transform>();
         
         //private Transform CurrentPreselection;
@@ -35,6 +36,8 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             }
             Preselections.Clear();
         }
+        
+        
         /*
          private bool TestBoxCast()
         {

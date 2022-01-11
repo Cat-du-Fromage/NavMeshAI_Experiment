@@ -11,6 +11,7 @@ using static Unity.Mathematics.math;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
+    
     [RequireComponent(typeof(PreselectionRegister))]
     public class PreselectionSystem : MonoBehaviour
     {
@@ -78,4 +79,5 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             }
         }
     }
+    
 }

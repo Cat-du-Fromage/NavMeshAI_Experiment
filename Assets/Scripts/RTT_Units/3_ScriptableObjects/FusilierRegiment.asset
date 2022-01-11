@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseNumUnits: 100
   minRow: 4
-  maxRow: 10
+  maxRow: 50
   positionOffset: 0.25

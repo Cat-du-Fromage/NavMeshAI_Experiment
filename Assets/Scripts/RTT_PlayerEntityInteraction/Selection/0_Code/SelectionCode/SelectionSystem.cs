@@ -125,7 +125,10 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         {
             if (!SelectionInputs.ShiftPressed) SelectRegister.Clear();//selectionRegister.DeselectAll();
             SingleRay = PlayerCamera.ScreenPointToRay(SelectionInputs.EndMouseClick[1]);
-            return SphereCast(SingleRay,1f, out SingleHit, INFINITY, UnitLayer); //use sphere so we don't miss between units
+            //Check if we hit more than 1 unit with a sphere cast
+            return SphereCastNonAlloc(SingleRay, 1f, Hits, UnitLayer) > 1 ? 
+                Raycast(SingleRay, out SingleHit, INFINITY, UnitLayer) : 
+                SphereCast(SingleRay,1f, out SingleHit, INFINITY, UnitLayer);
         }
 
         private void SingleHitSelect()

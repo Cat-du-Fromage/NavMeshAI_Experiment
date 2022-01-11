@@ -5,46 +5,29 @@ using UnityEngine;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
-    public interface ISelectable
-    {
-        public Renderer SelectRender { get; }
 
-        public bool IsSelected { get; set; }
-        public void SetSelected(bool state)
-        {
-            SelectRender.enabled = state;
-            IsSelected = state;
-        }
-    }
-
-    public class SelectionComponent : MonoBehaviour, ISelectable
+    public class SelectionComponent : MonoBehaviour
     {
         
         [SerializeField]private Renderer selectRender;
         [SerializeField]private Renderer preSelectRender;
         
-        public bool isPreselected = false;
+        public bool IsPreselected { get; private set; }
         //private bool isSelected = false;
-        Renderer ISelectable.SelectRender => selectRender;
-        public bool IsSelected { get; set; }
-        public bool IsPreselected => isPreselected;
-        
-        private void Awake()
-        {
-            selectRender.enabled = false;
-            preSelectRender.enabled = false;
-        }
-/*
+        public bool IsSelected { get; private set; }
+
+        private void Awake() => selectRender.enabled = preSelectRender.enabled = IsSelected = false;
+
         public void SetSelected(bool state)
         {
             selectRender.enabled = state;
-            isSelected = state;
+            IsSelected = state;
         }
-        */
+        
         public void SetPreselected(bool state)
         {
             preSelectRender.enabled = state;
-            isPreselected = state;
+            IsPreselected = state;
         }
         
     }
