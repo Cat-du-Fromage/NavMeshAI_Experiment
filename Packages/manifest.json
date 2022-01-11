@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unity.addressables": "1.19.15",
+    "com.unity.addressables": "1.19.17",
     "com.unity.ai.navigation": "1.0.0-exp.4",
     "com.unity.burst": "1.7.0-pre.1",
     "com.unity.cinemachine": "2.8.4",

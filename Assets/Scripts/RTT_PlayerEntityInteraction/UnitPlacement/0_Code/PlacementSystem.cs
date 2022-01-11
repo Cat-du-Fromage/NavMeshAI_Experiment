@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using KaizerWaldCode.RTTUnits;
 using KWUtils;
 //using Unity.Burst;
@@ -83,10 +82,10 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         private void OnPerformMouseMove(InputAction.CallbackContext ctx)
         {
+            //First : Update Mouse End Position Value
             MouseEndPosition = ctx.ReadValue<Vector2>();
-            
-            
-            if( Register.Selections.Count == 0) return;
+            int numSelection = Register.Selections.Count;
+            if( numSelection == 0) return;
             if (MouseEndPosition == MouseStartPosition) return;
             
             if (HitGround(EndRay))
@@ -97,29 +96,26 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 LengthMouseDrag  = length(EndGroundHit - StartGroundHit);
                 if (LengthMouseDrag > (regimentComp.UnitSize.x * 4)) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
-                    if (Register.Selections.Count > 0)
+                    NativeList<JobHandle> jhs = new NativeList<JobHandle>(numSelection, Allocator.TempJob);
+                    for (int i = 0; i < numSelection; i++)
                     {
-                        NativeList<JobHandle> jhs = new NativeList<JobHandle>(Register.Selections.Count, Allocator.TempJob);
-                        for (int i = 0; i < Register.Selections.Count; i++)
+                        regimentComp = Register.Selections[i].GetComponent<RegimentComponent>();
+                        using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
                         {
-                            regimentComp = Register.Selections[i].GetComponent<RegimentComponent>();
-                            using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
+                            JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
-                                JUnitsTokenPlacement job = new JUnitsTokenPlacement
-                                {
-                                    RegimentIndex = i,
-                                    NumRegimentSelected = Register.Selections.Count,
-                                    MaxRowLength = regimentComp.GetRegimentType.maxRow,
-                                    NumUnits = regimentComp.CurrentSize,
-                                    FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
-                                    StartPosition = StartGroundHit,
-                                    EndPosition = EndGroundHit
-                                };
-                                jhs.AddNoResize(job.Schedule(TransformAccesses));
-                            }
+                                RegimentIndex = i,
+                                NumRegimentSelected = Register.Selections.Count,
+                                MaxRowLength = regimentComp.GetRegimentType.maxRow,
+                                NumUnits = regimentComp.CurrentSize,
+                                FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
+                                StartPosition = StartGroundHit,
+                                EndPosition = EndGroundHit
+                            };
+                            jhs.AddNoResize(job.Schedule(TransformAccesses));
                         }
-                        jhs.Dispose(jhs[^1]);
                     }
+                    jhs.Dispose(jhs[^1]);
                 }
                 
                 
@@ -174,19 +170,11 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 int x = index - (z * unitPerRow);
                 float3 direction = normalize(EndPosition - StartPosition);
                 float3 crossDirection = normalize(cross(direction, -up()));
-                float3 rowStart;
-                //float3 rowStart = GetRowStart(z, numRows, unitPerRow, direction, crossDirection);
-                if (z == numRows - 1)
-                {
-                    int numUnitLeft = NumUnits - (numRows - 1) * unitPerRow;
-                    float lengthWithLeftUnits = FullUnitSize * numUnitLeft;
-                    float offsetStart = (unitPerRow * FullUnitSize - lengthWithLeftUnits) / 2f;
-                    rowStart = StartPosition + (direction * offsetStart) + crossDirection * (z * FullUnitSize);
-                }
-                else
-                {
-                    rowStart = StartPosition + crossDirection * (z * FullUnitSize);
-                }
+                
+                //FirstStart when 2nd regiment? : index = 1
+                
+                float3 rowStart = GetRowStart(z, numRows, unitPerRow, direction, crossDirection);
+                
                 float3 rowEnd = EndPosition + crossDirection * (z * FullUnitSize);
                 
                 float3 newDir = normalize(rowEnd - rowStart);
