@@ -9,30 +9,30 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
     public class PreselectionRegister : MonoBehaviour
     {
         
-        public HashSet<Transform> Preselections { get; } = new HashSet<Transform>();
+        public HashSet<Regiment> Preselections { get; } = new HashSet<Regiment>();
         
         //private Transform CurrentPreselection;
         //REGIMENT SECTION
 
         //PRESELECTION
         
-        public void Add(Transform regiment)
+        public void Add(Regiment regiment)
         {
             Preselections.Add(regiment);
-            regiment.GetComponent<RegimentComponent>().SetPreselected(true);
+            regiment.GetComponent<Regiment>().SetPreselected(true);
         }
         
-        public void Remove(Transform regiment)
+        public void Remove(Regiment regiment)
         {
             Preselections.Remove(regiment);
-            regiment.GetComponent<RegimentComponent>().SetPreselected(false);
+            regiment.GetComponent<Regiment>().SetPreselected(false);
         }
         
         public void Clear()
         {
-            foreach (Transform regiment in Preselections)
+            foreach (Regiment regiment in Preselections)
             {
-                regiment.GetComponent<RegimentComponent>().SetPreselected(false);
+                regiment.GetComponent<Regiment>().SetPreselected(false);
             }
             Preselections.Clear();
         }

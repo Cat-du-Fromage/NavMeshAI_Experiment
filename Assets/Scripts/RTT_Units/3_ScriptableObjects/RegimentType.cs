@@ -8,6 +8,6 @@ namespace KaizerWaldCode.RTTUnits
         public int baseNumUnits = 20;
         public int minRow = 4;
         public int maxRow = 10;
-        public float positionOffset = 0.5f;
+        public float offsetInRow = 0.5f;
     }
 }

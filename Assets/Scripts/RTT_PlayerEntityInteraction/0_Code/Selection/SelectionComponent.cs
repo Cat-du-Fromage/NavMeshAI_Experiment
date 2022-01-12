@@ -6,14 +6,13 @@ using UnityEngine;
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
 
-    public class SelectionComponent : MonoBehaviour
+    public class SelectionComponent : MonoBehaviour, ISelectable
     {
         
         [SerializeField]private Renderer selectRender;
         [SerializeField]private Renderer preSelectRender;
         
         public bool IsPreselected { get; private set; }
-        //private bool isSelected = false;
         public bool IsSelected { get; private set; }
 
         private void Awake() => selectRender.enabled = preSelectRender.enabled = IsSelected = false;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using KaizerWaldCode.RTTUnits;
 using KWUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,8 +26,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         private readonly LayerMask UnitLayer = 1 << 9;
         
         //SELECTION CACHE
+        private Regiment CachedRegiment;
         private Transform CachedUnitPreselection;
-        private Transform CurrentPreselection;
+        private Regiment CurrentPreselection;
         private bool PreselectOn;
         
         //RAYCAST 
@@ -58,16 +60,13 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             if (hitUnit && CachedUnitPreselection.TryGetComponent(out SelectionComponent comp))
             {
                 if (comp.IsPreselected) return;
-                Transform regimentFromParent = CachedUnitPreselection.parent;
-                CachedUnitPreselection = regimentFromParent != null ? regimentFromParent : CachedUnitPreselection.GetComponent<UnitComponent>().Regiment;
-                //if (PreselectOn && CachedUnitPreselection.parent != CurrentPreselection)
-                if (PreselectOn && regimentFromParent != CurrentPreselection)
+                if (PreselectOn && CachedRegiment != CurrentPreselection)
                 {
                     Register.Clear();
                 }
                 
                 //CurrentPreselection = CachedUnitPreselection.parent;
-                CurrentPreselection = CachedUnitPreselection;
+                CurrentPreselection = CachedRegiment;
                 Register.Add(CurrentPreselection);
                     
                 PreselectOn = true;

@@ -15,6 +15,7 @@ using UnityEngine.Rendering;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
+    /*
     public class V1SelectionSystem : MonoBehaviour
     {
         public SelectionRegister selectionRegister;
@@ -256,4 +257,5 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             }
         }
     }
+    */
 }

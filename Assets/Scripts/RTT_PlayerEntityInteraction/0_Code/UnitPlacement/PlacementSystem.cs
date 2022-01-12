@@ -90,25 +90,25 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             
             if (HitGround(EndRay))
             {
-                Transform regiment = Register.Selections[0];
-                RegimentComponent regimentComp = regiment.GetComponent<RegimentComponent>();;
+                Regiment regiment = Register.Selections[0];
                 EndGroundHit = Hit.point;
                 LengthMouseDrag  = length(EndGroundHit - StartGroundHit);
-                if (LengthMouseDrag > (regimentComp.UnitSize.x * 4)) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
+                if (LengthMouseDrag >= Register.MinRowLength && LengthMouseDrag <= Register.MaxRowLength) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
                     NativeList<JobHandle> jhs = new NativeList<JobHandle>(numSelection, Allocator.TempJob);
                     for (int i = 0; i < numSelection; i++)
                     {
-                        regimentComp = Register.Selections[i].GetComponent<RegimentComponent>();
-                        using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
+                        regiment = Register.Selections[i].GetComponent<Regiment>();
+                        using (TransformAccesses = new TransformAccessArray(regiment.PositionTokens))
                         {
                             JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
+                                MaxSelectionLength = Register.MaxRowLength,
                                 RegimentIndex = i,
                                 NumRegimentSelected = Register.Selections.Count,
-                                MaxRowLength = regimentComp.GetRegimentType.maxRow,
-                                NumUnits = regimentComp.CurrentSize,
-                                FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
+                                MaxRowLength = regiment.GetRegimentType.maxRow,
+                                NumUnits = regiment.CurrentSize,
+                                FullUnitSize = regiment.UnitSize.x + regiment.GetRegimentType.offsetInRow,
                                 StartPosition = StartGroundHit,
                                 EndPosition = EndGroundHit
                             };
@@ -153,6 +153,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         //[BurstCompile(CompileSynchronously = true)]
         private struct JUnitsTokenPlacement : IJobParallelForTransform
         {
+            [ReadOnly] public float MaxSelectionLength;
             [ReadOnly] public int RegimentIndex;
             [ReadOnly] public int NumRegimentSelected;
             [ReadOnly] public int MaxRowLength;
@@ -164,6 +165,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             {
                 int unitPerRow = (int)ceil(length(EndPosition - StartPosition) / FullUnitSize);
                 unitPerRow = min(unitPerRow,MaxRowLength);
+                
                 int numRows = (int)ceil(NumUnits / (float)unitPerRow); //Use to offset last row
                 
                 int z = (int)floor((float)index / unitPerRow);

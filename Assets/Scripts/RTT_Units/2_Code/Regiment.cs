@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using KaizerWaldCode.PlayerEntityInteractions;
 using KaizerWaldCode.PlayerEntityInteractions.RTTSelection;
 using KaizerWaldCode.RTTUnitPlacement;
 using KaizerWaldCode.Utils;
@@ -10,7 +11,7 @@ using static Unity.Mathematics.math;
 
 namespace KaizerWaldCode.RTTUnits
 {
-    public class RegimentComponent : MonoBehaviour
+    public class Regiment : MonoBehaviour
     {
         [SerializeField] private RegimentType regimentType;
         [SerializeField] private GameObject unitPrefab;
@@ -21,10 +22,9 @@ namespace KaizerWaldCode.RTTUnits
 
         private Transform regimentTransform;
         public Vector3 UnitSize { get; private set; }
-        
+        public float PlacerSize { get; private set; }
         public bool IsSelected { get; private set; }
         public bool IsPreselected { get; private set; }
-        
         public int CurrentSize { get => Units.Length;}
         public RegimentType GetRegimentType { get => regimentType;}
 
@@ -38,6 +38,7 @@ namespace KaizerWaldCode.RTTUnits
             
             regimentTransform = transform;
             UnitSize = unitPrefab.GetComponentInChildren<MeshFilter>().sharedMesh.bounds.size; //z is also valid
+            PlacerSize = positionTokenPrefab.GetComponentInChildren<MeshFilter>().sharedMesh.bounds.size.x;
             CreateRegimentMembers();
         }
 
@@ -54,7 +55,7 @@ namespace KaizerWaldCode.RTTUnits
                 (int x, int y) = KwGrid.GetXY(i, 10);
 
                 Vector3 newPos = startPos;
-                newPos.x = (startPos.x) + (UnitSize.x + regimentType.positionOffset) * (x+1);
+                newPos.x = (startPos.x) + (UnitSize.x + regimentType.offsetInRow) * (x+1);
                 newPos.y = UnitSize.y;
                 newPos.z = startPos.z + (y+1);
 
@@ -73,7 +74,7 @@ namespace KaizerWaldCode.RTTUnits
         {
             GameObject newUnit = Instantiate(unitPrefab, position, regimentTransform.rotation) ;
             newUnit.name = $"{regimentTransform.name}_{unitPrefab.name}{index}";
-            newUnit.GetComponent<UnitComponent>().SetRegiment(transform);
+            newUnit.GetComponent<UnitComponent>().SetRegiment(this);
             return newUnit.transform;
         }
         
@@ -99,7 +100,7 @@ namespace KaizerWaldCode.RTTUnits
         {
             IsSelected = enable;
             for (int i = 0; i < CurrentSize; i++)
-                Units[i].GetComponent<SelectionComponent>().SetSelected(enable);
+                Units[i].GetComponent<ISelectable>().SetSelected(enable);
         }
         
         //SetPreselected(bool) : select/deselect all units
@@ -107,7 +108,7 @@ namespace KaizerWaldCode.RTTUnits
         {
             IsPreselected = enable;
             for (int i = 0; i < CurrentSize; i++)
-                Units[i].GetComponent<SelectionComponent>().SetPreselected(enable);
+                Units[i].GetComponent<ISelectable>().SetPreselected(enable);
         }
 
     }

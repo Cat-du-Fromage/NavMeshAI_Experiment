@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using KaizerWaldCode.PlayerEntityInteractions;
 using UnityEngine;
 
-namespace KaizerWaldCode
+namespace KaizerWaldCode.RTTUnits
 {
     public class UnitComponent : MonoBehaviour
     {
@@ -10,7 +11,7 @@ namespace KaizerWaldCode
         
         public string Name => unitName;
 
-        public Transform Regiment { get; private set; }
-        public void SetRegiment(Transform regiment) => Regiment = regiment;
+        public Regiment Regiment { get; private set; }
+        public void SetRegiment(Regiment regiment) => Regiment = regiment;
     }
 }

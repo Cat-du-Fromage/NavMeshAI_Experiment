@@ -30,7 +30,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         private Camera PlayerCamera;
 
         //SELECTION CACHE
-        private Transform RegimentSelected;
+        private Regiment RegimentSelected;
 
         private RaycastHit SingleHit;
         private readonly RaycastHit[] Hits = new RaycastHit[4]; //when mouse click we cast a ray
@@ -177,7 +177,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         {
             RegimentSelected = unitCollider.transform.GetComponent<UnitComponent>().Regiment;
             
-            if(!RegimentSelected.TryGetComponent(out RegimentComponent regComp)) return;
+            if(!RegimentSelected.TryGetComponent(out Regiment regComp)) return;
             if(regComp.IsSelected) return; //unit's regiment is already selected
             SelectRegister.Add(RegimentSelected);
         }
