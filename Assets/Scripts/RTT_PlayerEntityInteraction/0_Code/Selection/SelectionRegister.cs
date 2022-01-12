@@ -13,26 +13,51 @@ namespace KaizerWaldCode.PlayerEntityInteractions
 
         public float MinRowLength; //{ get; private set; }
         public float MaxRowLength; //{ get; private set; }
-        
-        
+
+        public float StartDragPlaceLength;
+        public int SelectionMaxUniPerRow;
+
+        public float the3Change; 
         private float GetMaxRowLength(Regiment regiment) => (regiment.PlacerSize + regiment.GetRegimentType.offsetInRow) * regiment.GetRegimentType.maxRow;
         private float GetMinRowLength() => Selections.Count == 0 ? 0 : (Selections[0].PlacerSize + Selections[0].GetRegimentType.offsetInRow) * (Selections[0].GetRegimentType.minRow);
-        
-/*
-        public void UpdateMaxRowLength(Regiment regiment)
+
+        public float GetThe3Change()
         {
-            MinRowLength = (regiment.UnitSize.x + regiment.GetRegimentType.offsetInRow) * (regiment.GetRegimentType.minRow - 1);
-            MaxRowLength = 0;
+            the3Change = 0;
+            foreach (Regiment r in Selections)
+            {
+                the3Change += r.PlacerSize + r.GetRegimentType.offsetInRow;
+            }
+
+            return the3Change;
+        }
+        
+        public int GetSelectionMaxUniPerRow()
+        {
+            int num = 0;
+            foreach (Regiment r in Selections)
+            {
+                num += r.GetRegimentType.maxRow;
+            }
+            return num;
+        }
+        public float GetStartDragPlaceLength()
+        {
+            float StartDragPlaceLength = 0;
             for (int i = 0; i < Selections.Count; i++)
             {
                 RegimentType type = Selections[i].GetRegimentType;
-                MaxRowLength += (Selections[i].UnitSize.x + type.offsetInRow) * (type.maxRow - 1);
+                StartDragPlaceLength += (Selections[i].UnitSize.x + type.offsetInRow) * (type.maxRow);
             }
-            MaxRowLength += (Selections.Count - 1) * SpaceBetweenRegiment;
+            StartDragPlaceLength += (Selections.Count - 1) * SpaceBetweenRegiment;
+            return StartDragPlaceLength;
         }
-        */
+
+        
+        
         private void OnAddRegiment(Regiment regiment)
         {
+            
             if (Selections.Count == 1)
             {
                 MinRowLength = GetMinRowLength();
@@ -62,6 +87,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
                 Selections.Add(regiment);
                 regiment.SetSelected(true);
                 OnAddRegiment(regiment);
+                Test();
             }
         }
         
@@ -80,7 +106,15 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             Selections.ForEach(regiment=> regiment.SetSelected(false));
             Selections.Clear();
             OnClearRegiment();
+            Test();
         }
         
+        
+        
+        private void Test()
+        {
+            StartDragPlaceLength = GetStartDragPlaceLength();
+            SelectionMaxUniPerRow = GetSelectionMaxUniPerRow();
+        }
     }
 }

@@ -103,6 +103,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                         {
                             JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
+                                The3Change = Register.GetThe3Change(),
+                                SelectionMaxUnitPerRow = Register.GetSelectionMaxUniPerRow(),
+                                StartSelectionChangeLength = Register.GetStartDragPlaceLength(),
                                 MaxSelectionLength = Register.MaxRowLength,
                                 RegimentIndex = i,
                                 NumRegimentSelected = Register.Selections.Count,
@@ -153,6 +156,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         //[BurstCompile(CompileSynchronously = true)]
         private struct JUnitsTokenPlacement : IJobParallelForTransform
         {
+            [ReadOnly] public float The3Change;
+            [ReadOnly] public int SelectionMaxUnitPerRow;
+            [ReadOnly] public float StartSelectionChangeLength;
             [ReadOnly] public float MaxSelectionLength;
             [ReadOnly] public int RegimentIndex;
             [ReadOnly] public int NumRegimentSelected;
@@ -163,6 +169,8 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             [ReadOnly] public float3 EndPosition;
             public void Execute(int index, TransformAccess transform)
             {
+                float lenforchange = MaxSelectionLength - StartSelectionChangeLength / SelectionMaxUnitPerRow;
+                
                 int unitPerRow = (int)ceil(length(EndPosition - StartPosition) / FullUnitSize);
                 unitPerRow = min(unitPerRow,MaxRowLength);
                 
@@ -175,7 +183,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 
                 //FirstStart when 2nd regiment? : index = 1
                 
-                float3 rowStart = GetRowStart(z, numRows, unitPerRow, direction, crossDirection);
+                float3 rowStart = NEWGetRowStart(z, numRows, unitPerRow, direction, crossDirection);
                 
                 float3 rowEnd = EndPosition + crossDirection * (z * FullUnitSize);
                 
@@ -187,6 +195,26 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
                 transform.position = unitPos;
                 transform.rotation = quaternion.LookRotation(-crossDirection, up());
+            }
+            
+            public float3 NEWGetRowStart(int z,int numRows,int unitPerRow,float3 direction,float3 crossDirection)
+            {
+                float3 rowStart;
+                float offsetRegiment = max(1, RegimentIndex * 2.5f * length(EndPosition - StartPosition));
+                if (z == numRows - 1)
+                {
+                    int numUnitLeft = NumUnits - (numRows - 1) * unitPerRow;
+                    float lengthWithLeftUnits = FullUnitSize * numUnitLeft;
+                    float offsetStart = (unitPerRow * FullUnitSize - lengthWithLeftUnits) / 2f;
+                    
+                    Debug.Log(offsetRegiment);
+                    rowStart = StartPosition + (direction * offsetStart ) + crossDirection * (z * FullUnitSize);
+                }
+                else
+                {
+                    rowStart = StartPosition + crossDirection * (z * FullUnitSize) * offsetRegiment;
+                }
+                return rowStart;
             }
 
             private float3 GetRowStart(int z,int numRows,int unitPerRow,float3 direction,float3 crossDirection)
