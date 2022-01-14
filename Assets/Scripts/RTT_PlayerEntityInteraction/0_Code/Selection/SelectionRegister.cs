@@ -16,22 +16,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions
 
         public float StartDragPlaceLength;
         public int SelectionMaxUniPerRow;
+        private float GetMaxRowLength(Regiment regiment) => (regiment.GetUnit.unitWidth + regiment.GetRegimentType.offsetInRow) * regiment.GetRegimentType.maxRow;
+        private float GetMinRowLength() => Selections.Count == 0 ? 0 : (Selections[0].GetUnit.unitWidth + Selections[0].GetRegimentType.offsetInRow) * (Selections[0].GetRegimentType.minRow);
 
-        public float the3Change; 
-        private float GetMaxRowLength(Regiment regiment) => (regiment.PlacerSize + regiment.GetRegimentType.offsetInRow) * regiment.GetRegimentType.maxRow;
-        private float GetMinRowLength() => Selections.Count == 0 ? 0 : (Selections[0].PlacerSize + Selections[0].GetRegimentType.offsetInRow) * (Selections[0].GetRegimentType.minRow);
-
-        public float GetThe3Change()
-        {
-            the3Change = 0;
-            foreach (Regiment r in Selections)
-            {
-                the3Change += r.PlacerSize + r.GetRegimentType.offsetInRow;
-            }
-
-            return the3Change;
-        }
-        
         public int GetSelectionMaxUniPerRow()
         {
             int num = 0;
@@ -43,21 +30,18 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         }
         public float GetStartDragPlaceLength()
         {
-            float StartDragPlaceLength = 0;
+            StartDragPlaceLength = 0;
             for (int i = 0; i < Selections.Count; i++)
             {
                 RegimentType type = Selections[i].GetRegimentType;
-                StartDragPlaceLength += (Selections[i].UnitSize.x + type.offsetInRow) * (type.maxRow);
+                StartDragPlaceLength += (Selections[i].GetUnit.unitWidth + type.offsetInRow) * (type.minRow - 1);
             }
             StartDragPlaceLength += (Selections.Count - 1) * SpaceBetweenRegiment;
             return StartDragPlaceLength;
         }
 
-        
-        
         private void OnAddRegiment(Regiment regiment)
         {
-            
             if (Selections.Count == 1)
             {
                 MinRowLength = GetMinRowLength();

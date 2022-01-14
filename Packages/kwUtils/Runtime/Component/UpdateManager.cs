@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
     public interface IUpdateable
     {

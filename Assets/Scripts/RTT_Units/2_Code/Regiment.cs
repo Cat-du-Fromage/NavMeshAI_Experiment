@@ -1,114 +1,100 @@
+using Unity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using KaizerWaldCode.PlayerEntityInteractions;
 using KaizerWaldCode.PlayerEntityInteractions.RTTSelection;
-using KaizerWaldCode.RTTUnitPlacement;
-using KaizerWaldCode.Utils;
+using KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement;
+//using KaizerWaldCode.RTTUnitPlacement;
+using KWUtils;
 using UnityEngine;
 
 using static Unity.Mathematics.math;
 
 namespace KaizerWaldCode.RTTUnits
 {
+    //Regiment?
+    //Data Holder?
+    //
+    
+    //SUR! : Reference Units!
+    //SUR! : Reference Units Immutable DATA!
+    
     public class Regiment : MonoBehaviour
     {
-        [SerializeField] private RegimentType regimentType;
-        [SerializeField] private GameObject unitPrefab;
-        [SerializeField] private GameObject positionTokenPrefab;
+        [SerializeField] private RegimentType regimentType; //Immutable DATA
+        [SerializeField] private UnitType unitType; //Immutable DATA
 
-        public Transform[] Units { get; private set; }
-        public Transform[] PositionTokens { get; private set; }
+        public List<Unit> Units;// { get; private set; }
+        public List<IAttachable<Unit>> Attachables;
 
         private Transform regimentTransform;
-        public Vector3 UnitSize { get; private set; }
-        public float PlacerSize { get; private set; }
+        
         public bool IsSelected { get; private set; }
-        public bool IsPreselected { get; private set; }
-        public int CurrentSize { get => Units.Length;}
-        public RegimentType GetRegimentType { get => regimentType;}
-
+        
+        public RegimentType GetRegimentType => regimentType;
+        public UnitType GetUnit => unitType;
+        public int CurrentSize  => Units.Count;
+        public List<Transform> GetPlacementTokens => GetComponent<PlacementComponent>().PlacementTokens;
+        
         //Unity Event
         //==============================================================================================================
         
         private void Awake()
         {
-            Units = new Transform[regimentType.baseNumUnits];
-            PositionTokens = new Transform[regimentType.baseNumUnits];
-            
+            Units = new List<Unit>(regimentType.baseNumUnits);
+            Attachables = GetComponents<IAttachable<Unit>>().ToList();
             regimentTransform = transform;
-            UnitSize = unitPrefab.GetComponentInChildren<MeshFilter>().sharedMesh.bounds.size; //z is also valid
-            PlacerSize = positionTokenPrefab.GetComponentInChildren<MeshFilter>().sharedMesh.bounds.size.x;
-            CreateRegimentMembers();
         }
+
+        private void Start() => CreateRegimentMembers();
 
         //Methods
         //==============================================================================================================
+
+        Vector3 GetUnitPosition(Vector3 startPos, int index)
+        {
+            (int x, int y) = index.GetXY(regimentType.maxRow/2);
+            Vector3 newPos = startPos;
+            newPos.x = (startPos.x) + (unitType.unitWidth + regimentType.offsetInRow) * (x+1);
+            newPos.y = 2f; //real unit size not the token
+            newPos.z = startPos.z + (y+1);
+            return newPos;
+        }
         
         //CreateUnitMembers : create units gameobject as children
-        private void CreateRegimentMembers()
+        private void CreateRegimentMembers() // Make a builder AND a factory!!
         {
             Vector3 startPos = regimentTransform.position;
             
             for (int i = 0; i < regimentType.baseNumUnits; i++)
             {
-                (int x, int y) = KwGrid.GetXY(i, 10);
-
-                Vector3 newPos = startPos;
-                newPos.x = (startPos.x) + (UnitSize.x + regimentType.offsetInRow) * (x+1);
-                newPos.y = UnitSize.y;
-                newPos.z = startPos.z + (y+1);
-
-                Units[i] = CreateUnit(i, newPos);
-                PositionTokens[i] = CreatePositionToken(i, newPos);
+                Vector3 newPos = GetUnitPosition(startPos, i);
+                Units.Add(CreateUnit(i, newPos));
+                Units[i].SetIndex(i);
+                Attachables.ForEach(attach => attach.AttachTo(Units[i]));
             }
         }
 
         /// <summary>
         /// Create a single Unit
         /// </summary>
-        /// <param name="index">index of the unit in the regiment</param>
-        /// <param name="position">position to spawn</param>
-        /// <returns></returns>
-        private Transform CreateUnit(int index, Vector3 position)
+        private Unit CreateUnit(int index, Vector3 position)
         {
-            GameObject newUnit = Instantiate(unitPrefab, position, regimentTransform.rotation) ;
-            newUnit.name = $"{regimentTransform.name}_{unitPrefab.name}{index}";
-            newUnit.GetComponent<UnitComponent>().SetRegiment(this);
-            return newUnit.transform;
+            GameObject newUnit = Instantiate(unitType.unitPrefab, position, regimentTransform.rotation) ;
+            Unit unit = newUnit.GetComponent<Unit>();
+            newUnit.name = $"{regimentTransform.name}_{unitType.unitPrefab.name}{index}";
+            unit.SetRegiment(this);
+            return unit;
         }
-        
-        /// <summary>
-        /// Create a single Unit
-        /// </summary>
-        /// <param name="index">index of the unit in the regiment</param>
-        /// <param name="position">position to spawn</param>
-        /// <returns></returns>
-        private Transform CreatePositionToken(int index, Vector3 position)
-        {
-            Vector3 tokenPosition = position;
-            tokenPosition.y -= UnitSize.y * 0.9f - 1; // -1 because terrain height
-            
-            GameObject newToken = Instantiate(positionTokenPrefab, tokenPosition, regimentTransform.rotation) ;
-            newToken.name = $"{unitPrefab.name}{index}_{positionTokenPrefab.name}";
-            newToken.GetComponent<PositionTokenComponent>().AttachToUnit(Units[index]);
-            return newToken.transform;
-        }
-        
+
         //SetSelected(bool) : select/deselect all units
         public void SetSelected(bool enable)
         {
             IsSelected = enable;
-            for (int i = 0; i < CurrentSize; i++)
-                Units[i].GetComponent<ISelectable>().SetSelected(enable);
-        }
-        
-        //SetPreselected(bool) : select/deselect all units
-        public void SetPreselected(bool enable)
-        {
-            IsPreselected = enable;
-            for (int i = 0; i < CurrentSize; i++)
-                Units[i].GetComponent<ISelectable>().SetPreselected(enable);
+            GetComponent<IInteractable>().SetSelected(enable);
         }
 
     }

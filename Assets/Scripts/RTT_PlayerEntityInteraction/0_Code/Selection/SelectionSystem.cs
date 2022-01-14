@@ -1,5 +1,10 @@
+#pragma warning disable 4014
+
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks.Linq;
 using KaizerWaldCode.RTTUnits;
 using KWUtils;
 using Unity.Collections;
@@ -9,6 +14,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using Cysharp.Threading.Tasks.Triggers;
 
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
@@ -16,6 +22,7 @@ using static Unity.Mathematics.math;
 using static KWUtils.KWmesh;
 using static KWUtils.KWRect;
 using static KaizerWaldCode.PlayerEntityInteractions.RTTSelection.SelectionMeshUtils;
+using Unit = KaizerWaldCode.RTTUnits.Unit;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
@@ -100,7 +107,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
                 RetrieveBoxHits();
                 UpdateSelectionMesh();
                 SelectionCollider.enabled = true;
-                StartCoroutine(DisableAfterSelections());
+                
+                DisableAfter();
+                
                 RunJob = false;
                 HitsSucceed = false;
             }
@@ -126,17 +135,17 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             if (!SelectionInputs.ShiftPressed) SelectRegister.Clear();//selectionRegister.DeselectAll();
             SingleRay = PlayerCamera.ScreenPointToRay(SelectionInputs.EndMouseClick[1]);
             //Check if we hit more than 1 unit with a sphere cast
-            return SphereCastNonAlloc(SingleRay, 1f, Hits, UnitLayer) > 1 ? 
+            return SphereCastNonAlloc(SingleRay, 0.5f, Hits, UnitLayer) > 1 ? 
                 Raycast(SingleRay, out SingleHit, INFINITY, UnitLayer) : 
-                SphereCast(SingleRay,1f, out SingleHit, INFINITY, UnitLayer);
+                SphereCast(SingleRay,0.5f, out SingleHit, INFINITY, UnitLayer);
         }
 
         private void SingleHitSelect()
         {
-            if (!SingleHit.transform.TryGetComponent(out SelectionComponent selectComp)) return;
-            if (selectComp.IsSelected) return;
+            if (!SingleHit.transform.TryGetComponent(out Unit selectComp)) return;
+            if (selectComp.Regiment.IsSelected) return;
             
-            RegimentSelected = SingleHit.transform.GetComponent<UnitComponent>().Regiment;
+            RegimentSelected = selectComp.Regiment;
             SelectRegister.Add(RegimentSelected);
         }
 
@@ -171,11 +180,39 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             yield return new WaitForFixedUpdate();
             SelectionCollider.enabled = false;
         }
-        
+
+        private async UniTask DisableAfter()
+        {
+            Debug.Log($"1trigger? : {Time.frameCount}");
+            /*
+            AsyncTriggerEnterTrigger trigger = this.GetAsyncTriggerEnterTrigger();
+            SelectionCollider.enabled = true;
+            await trigger.OnTriggerEnterAsync();
+            await trigger.GetAsyncTriggerEnterTrigger().ForEachAsync(unitCollider =>
+            {
+                Debug.Log($"trigger collision : {unitCollider.gameObject.name}");
+                RegimentSelected = unitCollider.transform.GetComponent<UnitComponent>().Regiment;
+                if (RegimentSelected.TryGetComponent(out Regiment regComp))
+                {
+                    if (!regComp.IsSelected)
+                    {
+                        SelectRegister.Add(RegimentSelected);
+                    }//unit's regiment is already selected
+                }
+                //SelectionCollider.enabled = false;
+            });
+            
+            Debug.Log($"2trigger? : {Time.frameCount}");
+            */
+            await UniTask.DelayFrame(5);
+            Debug.Log($"2trigger? : {Time.frameCount}");
+            SelectionCollider.enabled = false;
+        }
+
         //USE FOR DRAG SELECTION
         private void OnTriggerEnter(Collider unitCollider)
         {
-            RegimentSelected = unitCollider.transform.GetComponent<UnitComponent>().Regiment;
+            RegimentSelected = unitCollider.transform.GetComponent<Unit>().Regiment;
             
             if(!RegimentSelected.TryGetComponent(out Regiment regComp)) return;
             if(regComp.IsSelected) return; //unit's regiment is already selected

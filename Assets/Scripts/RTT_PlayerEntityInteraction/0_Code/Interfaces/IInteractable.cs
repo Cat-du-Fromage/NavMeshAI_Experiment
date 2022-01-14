@@ -1,11 +1,9 @@
 namespace KaizerWaldCode.PlayerEntityInteractions
 {
-    public interface ISelectable
+    public interface IInteractable
     {
         public bool IsSelected { get; }
-        public bool IsPreselected { get; }
 
         public void SetSelected(bool enable);
-        public void SetPreselected(bool enable);
     }
 }

@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-namespace KaizerWaldCode.Utils
+namespace KWUtils
 {
     public abstract class SingletonMonoBehaviour<T> : MonoBehaviour
     where T : Component
@@ -22,6 +23,22 @@ namespace KaizerWaldCode.Utils
                 }
                 return instance;
             }
+        }
+    }
+
+    public abstract class Singleton<T> : MonoBehaviour 
+        where T : MonoBehaviour
+    {
+        public static T Instance { get; private set; }
+
+        protected virtual void Awake() //DONT FORGET base.Awake();
+        {
+            if (Instance != null && Instance != this as T)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this as T;
         }
     }
 }

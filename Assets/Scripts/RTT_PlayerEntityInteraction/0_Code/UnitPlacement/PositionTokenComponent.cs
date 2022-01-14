@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace KaizerWaldCode.RTTUnitPlacement
+namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 {
     public class PositionTokenComponent : MonoBehaviour
     {

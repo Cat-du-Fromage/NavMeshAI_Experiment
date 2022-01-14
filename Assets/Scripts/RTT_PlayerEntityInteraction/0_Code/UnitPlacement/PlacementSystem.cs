@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using KaizerWaldCode.RTTUnits;
+using KaizerWaldCode.Utils;
 using KWUtils;
 //using Unity.Burst;
 using Unity.Collections;
@@ -25,9 +26,8 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         private const int SpaceBeetweenRegiment = 2; //2 units
         //INPUT SYSTEM
-        private SelectionInputController Control;
-        private InputAction MouseAction;
-        
+        private PlayerEntityInteractionInputsManager Control;
+
         //RAYCAST
         private Camera PlayerCamera;
         private RaycastHit Hit;
@@ -51,26 +51,25 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         
         //JOB SYSTEM
         private TransformAccessArray TransformAccesses;
+        private NativeList<JobHandle> JobHandles;
         private JobHandle PlacementJobHandle;
 
         private bool HitGround(Ray ray) => Raycast(ray, out Hit, INFINITY, TerrainLayer);
-
-        private void OnEnable() => Control.Enable();
-
-        private void OnDisable() => Control.Disable();
 
         private void Awake()
         {
             PlayerCamera = Camera.main;
             Register = GetComponent<SelectionRegister>();
             
-            Control ??= new SelectionInputController();
-            MouseAction = Control.MouseControl.PlacementRightClickMove;
-            
-            MouseAction.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
+            Control = GetComponent<PlayerEntityInteractionInputsManager>();
         }
-        
-        private void OnDestroy() => MouseAction.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
+
+        private void Start()
+        {
+            Control.PlacementEvents.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
+        }
+
+        private void OnDestroy() => Control.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
 
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
@@ -90,35 +89,34 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             
             if (HitGround(EndRay))
             {
-                Regiment regiment = Register.Selections[0];
                 EndGroundHit = Hit.point;
                 LengthMouseDrag  = length(EndGroundHit - StartGroundHit);
-                if (LengthMouseDrag >= Register.MinRowLength && LengthMouseDrag <= Register.MaxRowLength) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
+                if (LengthMouseDrag >= Register.MinRowLength - 1) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
-                    NativeList<JobHandle> jhs = new NativeList<JobHandle>(numSelection, Allocator.TempJob);
+                    JobHandles = new NativeList<JobHandle>(numSelection, Allocator.TempJob);
                     for (int i = 0; i < numSelection; i++)
                     {
-                        regiment = Register.Selections[i].GetComponent<Regiment>();
-                        using (TransformAccesses = new TransformAccessArray(regiment.PositionTokens))
+                        Regiment regiment = Register.Selections[i].GetComponent<Regiment>();
+                        using (TransformAccesses = new TransformAccessArray(regiment.GetPlacementTokens.ToArray()))
                         {
                             JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
-                                The3Change = Register.GetThe3Change(),
                                 SelectionMaxUnitPerRow = Register.GetSelectionMaxUniPerRow(),
                                 StartSelectionChangeLength = Register.GetStartDragPlaceLength(),
                                 MaxSelectionLength = Register.MaxRowLength,
                                 RegimentIndex = i,
                                 NumRegimentSelected = Register.Selections.Count,
+                                MinRowLength = regiment.GetRegimentType.minRow,
                                 MaxRowLength = regiment.GetRegimentType.maxRow,
                                 NumUnits = regiment.CurrentSize,
-                                FullUnitSize = regiment.UnitSize.x + regiment.GetRegimentType.offsetInRow,
+                                FullUnitSize = regiment.GetUnit.unitWidth + regiment.GetRegimentType.offsetInRow,
                                 StartPosition = StartGroundHit,
                                 EndPosition = EndGroundHit
                             };
-                            jhs.AddNoResize(job.Schedule(TransformAccesses));
+                            JobHandles.AddNoResize(job.Schedule(TransformAccesses));
                         }
                     }
-                    jhs.Dispose(jhs[^1]);
+                    JobHandles.Dispose(JobHandles[^1]);
                 }
                 
                 
@@ -146,6 +144,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 */
             }
         }
+        
 
         private void OnCancelMouseClick(InputAction.CallbackContext ctx)
         {
@@ -156,12 +155,12 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         //[BurstCompile(CompileSynchronously = true)]
         private struct JUnitsTokenPlacement : IJobParallelForTransform
         {
-            [ReadOnly] public float The3Change;
             [ReadOnly] public int SelectionMaxUnitPerRow;
             [ReadOnly] public float StartSelectionChangeLength;
             [ReadOnly] public float MaxSelectionLength;
             [ReadOnly] public int RegimentIndex;
             [ReadOnly] public int NumRegimentSelected;
+            [ReadOnly] public int MinRowLength;
             [ReadOnly] public int MaxRowLength;
             [ReadOnly] public int NumUnits;
             [ReadOnly] public float FullUnitSize;
@@ -169,69 +168,55 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             [ReadOnly] public float3 EndPosition;
             public void Execute(int index, TransformAccess transform)
             {
-                float lenforchange = MaxSelectionLength - StartSelectionChangeLength / SelectionMaxUnitPerRow;
+                //1) start drag after we hit the length Min of the selections
+                float mouseDragLength = length(EndPosition - StartPosition) - StartSelectionChangeLength;
                 
-                int unitPerRow = (int)ceil(length(EndPosition - StartPosition) / FullUnitSize);
-                unitPerRow = min(unitPerRow,MaxRowLength);
+                //2) increase size placement Each length = UnitSize
+                int newUnitLength = (int)floor(mouseDragLength / FullUnitSize);
                 
-                int numRows = (int)ceil(NumUnits / (float)unitPerRow); //Use to offset last row
-                
-                int z = (int)floor((float)index / unitPerRow);
-                int x = index - (z * unitPerRow);
-                float3 direction = normalize(EndPosition - StartPosition);
-                float3 crossDirection = normalize(cross(direction, -up()));
+                //HOW MANY ROWS?
+                int unitPerRow = (int)floor(MinRowLength + max(0,newUnitLength / NumRegimentSelected));
+                unitPerRow = clamp(unitPerRow,MinRowLength, MaxRowLength);
+
+                int numRows = (int)ceil((float)NumUnits / unitPerRow); //Use to offset last row
+
+                (int x, int z) = index.GetXY(unitPerRow);
+
+                float3 direction = normalize(EndPosition - StartPosition); //Direction mouse end - start
+                float3 crossDirection = normalize(cross(direction, -up())); //direction for back rows (second,thrid line etc...)
                 
                 //FirstStart when 2nd regiment? : index = 1
+                float offsetRegiment = RegimentIndex * 2.5f;
                 
-                float3 rowStart = NEWGetRowStart(z, numRows, unitPerRow, direction, crossDirection);
-                
+                //ROWS POSITION (after first line complete position offset to create an other behind)
+                float3 rowStart = GetRowStart(z, numRows, unitPerRow, direction, crossDirection);
                 float3 rowEnd = EndPosition + crossDirection * (z * FullUnitSize);
-                
-                float3 newDir = normalize(rowEnd - rowStart);
+                float3 newRowDirection = normalize(rowEnd - rowStart);
                     
-                float3 unitPos = rowStart + (x * FullUnitSize) * newDir;
+                float3 unitPos = rowStart + newRowDirection * (x * FullUnitSize);
+
+                //CAREFUL need to store somehow previous regimentSize
+                unitPos +=((unitPerRow-1)*FullUnitSize) * direction * RegimentIndex; //Add + regiment current Size (row)
+
+                unitPos += offsetRegiment * direction; //Add + regiment offset
 
                 unitPos.y = 2; // need to delete/replace this
 
                 transform.position = unitPos;
                 transform.rotation = quaternion.LookRotation(-crossDirection, up());
             }
-            
-            public float3 NEWGetRowStart(int z,int numRows,int unitPerRow,float3 direction,float3 crossDirection)
-            {
-                float3 rowStart;
-                float offsetRegiment = max(1, RegimentIndex * 2.5f * length(EndPosition - StartPosition));
-                if (z == numRows - 1)
-                {
-                    int numUnitLeft = NumUnits - (numRows - 1) * unitPerRow;
-                    float lengthWithLeftUnits = FullUnitSize * numUnitLeft;
-                    float offsetStart = (unitPerRow * FullUnitSize - lengthWithLeftUnits) / 2f;
-                    
-                    Debug.Log(offsetRegiment);
-                    rowStart = StartPosition + (direction * offsetStart ) + crossDirection * (z * FullUnitSize);
-                }
-                else
-                {
-                    rowStart = StartPosition + crossDirection * (z * FullUnitSize) * offsetRegiment;
-                }
-                return rowStart;
-            }
 
-            private float3 GetRowStart(int z,int numRows,int unitPerRow,float3 direction,float3 crossDirection)
+            private float3 GetRowStart(int z,int numRows,int unitPerRow, in float3 direction, in float3 crossDirection)
             {
-                float3 rowStart;
-                if (z == numRows - 1)
+                float3 rowStart = StartPosition + crossDirection * (FullUnitSize * z);
+                
+                int numUnitLeft = NumUnits - (numRows - 1) * unitPerRow;
+                if (z == numRows - 1 && numUnitLeft < unitPerRow) //very last Row
                 {
-                    int numUnitLeft = NumUnits - (numRows - 1) * unitPerRow;
-                    float lengthWithLeftUnits = FullUnitSize * numUnitLeft;
-                    float offsetStart = (unitPerRow * FullUnitSize - lengthWithLeftUnits) / 2f;
-                    rowStart = StartPosition + (direction * offsetStart) + crossDirection * (z * FullUnitSize);
+                    float lengthWithLeftUnits = (FullUnitSize * numUnitLeft);
+                    float offsetStart = ((FullUnitSize * unitPerRow) - lengthWithLeftUnits) / 2f;
+                    rowStart += direction * offsetStart;
                 }
-                else
-                {
-                    rowStart = StartPosition + crossDirection * (z * FullUnitSize);
-                }
-
                 return rowStart;
             }
         }

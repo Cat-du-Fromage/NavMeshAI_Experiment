@@ -14,7 +14,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         private SelectionInputController Control;
         public SelectionInputController.MouseControlActions MouseCtrl { get; private set; }
         public InputAction SelectionEvents { get; private set; }
-        
+        public InputAction PlacementEvents { get; private set; }
         //Selection Datas
 
         public bool ShiftPressed{ get; private set; }
@@ -33,7 +33,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             Control ??= new SelectionInputController();
             MouseCtrl = Control.MouseControl;
             SelectionEvents = Control.MouseControl.SelectionMouseLeftClick;
-            
+            PlacementEvents = Control.MouseControl.PlacementRightClickMove;
             Control.MouseControl.ShiftClick.EnableStartCancelEvent(OnStartShift, OnCancelShift);
             SelectionEvents.EnableAllEvents(OnStartMouseClick, OnPerformLeftClickMoveMouse, OnCancelMouseClick);
         }
