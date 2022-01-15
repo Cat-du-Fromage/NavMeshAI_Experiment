@@ -67,8 +67,18 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private void Start()
         {
             Control.PlacementEvents.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
+            Control.CtrlEvents.EnableStartCancelEvent(OnStartCtrl, OnCancelCtrl);
         }
-
+        
+        private void OnStartCtrl(InputAction.CallbackContext ctx)
+        {
+            
+        }
+        private void OnCancelCtrl(InputAction.CallbackContext ctx)
+        {
+            
+        }
+        
         private void OnDestroy() => Control.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
 
         private void OnStartMouseClick(InputAction.CallbackContext ctx)

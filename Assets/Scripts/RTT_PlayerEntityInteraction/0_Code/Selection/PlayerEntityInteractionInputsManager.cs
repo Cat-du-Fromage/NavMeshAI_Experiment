@@ -15,10 +15,12 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         public SelectionInputController.MouseControlActions MouseCtrl { get; private set; }
         public InputAction SelectionEvents { get; private set; }
         public InputAction PlacementEvents { get; private set; }
+        public InputAction CtrlEvents { get; private set; }
         //Selection Datas
 
         public bool ShiftPressed{ get; private set; }
         public bool LeftClick{ get; private set; }
+        public bool CtrlClick{ get; private set; }
         public bool IsDragging{ get; private set; }
 
         public Vector2 StartMouseClick{ get; private set; }
@@ -34,7 +36,13 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             MouseCtrl = Control.MouseControl;
             SelectionEvents = Control.MouseControl.SelectionMouseLeftClick;
             PlacementEvents = Control.MouseControl.PlacementRightClickMove;
+            CtrlEvents = Control.MouseControl.CtrlClick;
+        }
+
+        private void Start()
+        {
             Control.MouseControl.ShiftClick.EnableStartCancelEvent(OnStartShift, OnCancelShift);
+            Control.MouseControl.CtrlClick.EnableStartCancelEvent(OnStartCtrl, OnCancelCtrl);
             SelectionEvents.EnableAllEvents(OnStartMouseClick, OnPerformLeftClickMoveMouse, OnCancelMouseClick);
         }
 
@@ -46,6 +54,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions
 
         private void OnStartShift(InputAction.CallbackContext ctx) => ShiftPressed = true;
         private void OnCancelShift(InputAction.CallbackContext ctx) => ShiftPressed = false;
+        
+        private void OnStartCtrl(InputAction.CallbackContext ctx) => CtrlClick = true;
+        private void OnCancelCtrl(InputAction.CallbackContext ctx) => CtrlClick = false;
         
         //LEFT CLICK + MOUSE MOVE
         //==============================================================================================================
