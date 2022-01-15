@@ -4,8 +4,11 @@ using UnityEngine;
 
 namespace KaizerWaldCode.RTTUnits
 {
-    public class RegimentRegister : MonoBehaviour
+    //Register ALL Regiment InGame!
+    //
+    public class RegimentManager : MonoBehaviour
     {
+        private List<Regiment> regiment;
         // Start is called before the first frame update
         void Start()
         {
