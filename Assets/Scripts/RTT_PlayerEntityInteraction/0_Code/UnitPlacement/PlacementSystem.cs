@@ -21,6 +21,8 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 {
     public class PlacementSystem : MonoBehaviour
     {
+        private RegimentManager regimentManager;
+        
         [SerializeField] private GameObject token;
         private SelectionRegister Register;
 
@@ -62,6 +64,8 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             Register = GetComponent<SelectionRegister>();
             
             Control = GetComponent<PlayerEntityInteractionInputsManager>();
+
+            regimentManager = FindObjectOfType<RegimentManager>();
         }
 
         private void Start()
@@ -72,13 +76,13 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         
         private void OnStartCtrl(InputAction.CallbackContext ctx)
         {
-            
+            regimentManager.Regiments.ForEach( regiment => regiment.EnablePlacementToken(true));
         }
         private void OnCancelCtrl(InputAction.CallbackContext ctx)
         {
-            
+            regimentManager.Regiments.ForEach( regiment => regiment.EnablePlacementToken(false));
         }
-        
+
         private void OnDestroy() => Control.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
 
         private void OnStartMouseClick(InputAction.CallbackContext ctx)

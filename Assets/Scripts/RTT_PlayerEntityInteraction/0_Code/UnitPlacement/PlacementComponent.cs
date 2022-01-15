@@ -9,7 +9,11 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
     {
         public Regiment ParentEntity; //{ get; private set; }
         public List<Transform> PlacementTokens { get; private set; }
-
+        
+        public List<Renderer> PlacementRenderers { get; private set; }
+        
+        public bool IsSelected { get; private set; }
+        
         private void Awake() => ParentEntity = GetComponent<Regiment>();
 
         
@@ -20,7 +24,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         public void AttachTo(Unit unit) //Index Is a problem!! unit got the index?
         {
             Transform unitTransform = unit.transform;
+            
             PlacementTokens ??= new List<Transform>(ParentEntity.GetRegimentType.baseNumUnits);
+            PlacementRenderers ??= new List<Renderer>(ParentEntity.GetRegimentType.baseNumUnits);
             
             Vector3 tokenPosition = unitTransform.position;
             
@@ -31,6 +37,14 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             newToken.name = $"{unit.Regiment.GetUnit.unitPrefab.name}{unit.Index}_{unit.Regiment.GetUnit.positionTokenPrefab.name}";
             
             PlacementTokens.Add(newToken.transform);
+            
+            PlacementRenderers.Add(newToken.GetComponent<Renderer>());
+        }
+        
+        public void SetVisible(bool state)
+        {
+            IsSelected = state;
+            PlacementRenderers.ForEach(select => select.enabled = state);
         }
     }
     

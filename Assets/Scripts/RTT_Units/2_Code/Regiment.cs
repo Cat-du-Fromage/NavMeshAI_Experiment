@@ -38,6 +38,7 @@ namespace KaizerWaldCode.RTTUnits
         public UnitType GetUnit => unitType;
         public int CurrentSize  => Units.Count;
         public List<Transform> GetPlacementTokens => GetComponent<PlacementComponent>().PlacementTokens;
+        public List<Renderer> GetPlacementRenderers => GetComponent<PlacementComponent>().PlacementRenderers;
         
         //Unity Event
         //==============================================================================================================
@@ -97,5 +98,6 @@ namespace KaizerWaldCode.RTTUnits
             GetComponent<IInteractable>().SetSelected(enable);
         }
 
+        public void EnablePlacementToken(bool enable) => GetComponent<PlacementComponent>().SetVisible(enable);
     }
 }
