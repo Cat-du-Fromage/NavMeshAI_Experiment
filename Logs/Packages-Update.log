@@ -71,3 +71,11 @@ The following packages were updated:
   com.unity.visualscripting from version 1.7.3 to 1.7.6
 The following packages were removed:
   com.unity.ui.builder@1.0.0-preview.18
+
+=== Sun Jan 16 21:06:47 2022
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.render-pipelines.universal from version 12.1.2 to 12.1.3
