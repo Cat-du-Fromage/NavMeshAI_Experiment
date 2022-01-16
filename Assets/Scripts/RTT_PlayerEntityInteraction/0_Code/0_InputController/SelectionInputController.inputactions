@@ -42,7 +42,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "CtrlClick",
+                    "name": "SpaceClick",
                     "type": "Button",
                     "id": "2329b4c5-a2f3-41e4-83e0-056ed0659e87",
                     "expectedControlType": "Button",
@@ -143,11 +143,11 @@
                 {
                     "name": "",
                     "id": "c1d0f245-723e-4ca0-86fa-2ecd955e4dca",
-                    "path": "<Keyboard>/ctrl",
+                    "path": "<Keyboard>/space",
                     "interactions": "Press(behavior=2)",
                     "processors": "",
                     "groups": "",
-                    "action": "CtrlClick",
+                    "action": "SpaceClick",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

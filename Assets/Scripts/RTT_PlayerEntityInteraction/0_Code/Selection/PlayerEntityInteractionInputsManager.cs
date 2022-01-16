@@ -36,27 +36,28 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             MouseCtrl = Control.MouseControl;
             SelectionEvents = Control.MouseControl.SelectionMouseLeftClick;
             PlacementEvents = Control.MouseControl.PlacementRightClickMove;
-            CtrlEvents = Control.MouseControl.CtrlClick;
+            CtrlEvents = Control.MouseControl.SpaceClick;
         }
 
         private void Start()
         {
             Control.MouseControl.ShiftClick.EnableStartCancelEvent(OnStartShift, OnCancelShift);
-            Control.MouseControl.CtrlClick.EnableStartCancelEvent(OnStartCtrl, OnCancelCtrl);
+            Control.MouseControl.SpaceClick.EnableStartCancelEvent(OnStartSpaceClick, OnCancelSpaceClick);
             SelectionEvents.EnableAllEvents(OnStartMouseClick, OnPerformLeftClickMoveMouse, OnCancelMouseClick);
         }
 
         private void OnDestroy()
         {
             Control.MouseControl.ShiftClick.DisableStartCancelEvent(OnStartShift, OnCancelShift);
+            Control.MouseControl.SpaceClick.DisableStartCancelEvent(OnStartSpaceClick, OnCancelSpaceClick);
             SelectionEvents.DisableAllEvents(OnStartMouseClick, OnPerformLeftClickMoveMouse, OnCancelMouseClick);
         }
 
         private void OnStartShift(InputAction.CallbackContext ctx) => ShiftPressed = true;
         private void OnCancelShift(InputAction.CallbackContext ctx) => ShiftPressed = false;
         
-        private void OnStartCtrl(InputAction.CallbackContext ctx) => CtrlClick = true;
-        private void OnCancelCtrl(InputAction.CallbackContext ctx) => CtrlClick = false;
+        private void OnStartSpaceClick(InputAction.CallbackContext ctx) => CtrlClick = true;
+        private void OnCancelSpaceClick(InputAction.CallbackContext ctx) => CtrlClick = false;
         
         //LEFT CLICK + MOUSE MOVE
         //==============================================================================================================

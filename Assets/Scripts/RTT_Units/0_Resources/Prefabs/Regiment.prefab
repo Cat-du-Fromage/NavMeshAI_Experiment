@@ -10,8 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5075743312797074580}
   - component: {fileID: 5075743312797074583}
-  - component: {fileID: 5075743312797074581}
-  - component: {fileID: 8390328342764921977}
   m_Layer: 0
   m_Name: Regiment
   m_TagString: Untagged
@@ -48,31 +46,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   regimentType: {fileID: 11400000, guid: 91baa9550984cc84bbd2996fb7624f3b, type: 2}
   unitType: {fileID: 11400000, guid: 63d3d53b355416f49866923608a024b4, type: 2}
-  Units: []
-  PositionTokens: []
---- !u!114 &5075743312797074581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5075743312797074582}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 588baf5f70cd57747a818714b9858ef9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selectPrefab: {fileID: 3614250492761392, guid: 6107552f24d416342acf8f7782fd7673, type: 3}
---- !u!114 &8390328342764921977
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5075743312797074582}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e664aca0a130437d9c73d9bb0ee02f0c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PositionTokens: []

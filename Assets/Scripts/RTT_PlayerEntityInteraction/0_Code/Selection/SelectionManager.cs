@@ -9,13 +9,9 @@ using KaizerWaldCode.RTTUnits;
 using KWUtils;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
 using Cysharp.Threading.Tasks.Triggers;
-
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
 
@@ -26,13 +22,13 @@ using Unit = KaizerWaldCode.RTTUnits.Unit;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
-    [RequireComponent(typeof(SelectionRegister))]
-    public class SelectionSystem : MonoBehaviour
+    public class SelectionManager : MonoBehaviour
     {
-        public PlayerEntityInteractionInputsManager SelectionInputs;
-        private InputAction SelectEvents;
-        
-        public SelectionRegister SelectRegister;
+        //=========================================
+        //SELECTION ORDER
+        private Queue<Regiment> RegimentsToSelect;
+        private bool ClearSelection;
+        //=========================================
         
         private Camera PlayerCamera;
 
@@ -50,15 +46,16 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         
         //UI RECTANGLE
         private readonly Vector2[] UiCorners = new Vector2[4] {Vector2.down, Vector2.one, Vector2.up ,Vector2.right};
-        private readonly Color UiColor = new Color(0.8f,0.8f,0.95f,0.25f);
-        private readonly Color UiBorderColor = new Color(0.8f, 0.8f, 0.95f);
-        
+
         //MESH SELECTION
         private MeshCollider SelectionCollider;
         private Mesh SelectionMesh;
         private readonly Vector3[] SelectionMeshVertices = BasicCube;
 
         //NEW INPUT SYSTEM
+        public PlayerEntityInteractionInputsManager SelectionInputs;
+        private InputAction SelectEvents;
+        
         private bool RunJob;
         private bool HitsSucceed;
 
@@ -66,23 +63,40 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         //==============================================================================================================
         private void Awake()
         {
+            transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            RegimentsToSelect = new Queue<Regiment>(2);
             PlayerCamera = Camera.main;
-            SelectRegister = GetComponent<SelectionRegister>();
-
-            SelectionInputs = GetComponent<PlayerEntityInteractionInputsManager>();
-
             SelectionMesh = InitializeMesh(SelectionMeshVertices);
             SelectionCollider = gameObject.InitializeCollider(SelectionMesh);
         }
 
         private void Start()
         {
+            SelectionInputs = PlayerInteractionsSystem.Instance.GetInputs;
             SelectEvents = SelectionInputs.SelectionEvents;
             SelectEvents.EnablePerformCancelEvent(OnPerformLeftClickMoveMouse, OnLeftClickRelease);
         }
 
         private void OnDestroy() => SelectEvents.DisablePerformCancelEvent(OnPerformLeftClickMoveMouse, OnLeftClickRelease);
-        
+
+        /// <summary>
+        /// We check each update if we need to add or clear Selection
+        /// </summary>
+        private void Update()
+        {
+            if (RegimentsToSelect.Count == 0 && !ClearSelection) return;
+            if (ClearSelection)
+            {
+                PlayerInteractionsSystem.Instance.ClearSelections();
+                ClearSelection = false;
+            }
+            else
+            {
+                for (int i = 0; i < RegimentsToSelect.Count; i++)
+                    PlayerInteractionsSystem.Instance.SelectEntity(RegimentsToSelect.Dequeue());
+            }
+        }
+
         //EVENTS CALLBACKS
         //==============================================================================================================
 
@@ -100,18 +114,14 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         
         private void OnLeftClickRelease(InputAction.CallbackContext obj)
         {
-            if (!SelectionInputs.ShiftPressed) SelectRegister.Clear();
-
+            if (!SelectionInputs.ShiftPressed) ClearSelection = true;
             if (RunJob && HitsSucceed)
             {
                 RetrieveBoxHits();
                 UpdateSelectionMesh();
                 SelectionCollider.enabled = true;
-                
                 DisableAfter();
-                
-                RunJob = false;
-                HitsSucceed = false;
+                RunJob = HitsSucceed = false;
             }
             else if(SingleRayCast())
             {
@@ -132,7 +142,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         /// </summary>
         private bool SingleRayCast()
         {
-            if (!SelectionInputs.ShiftPressed) SelectRegister.Clear();//selectionRegister.DeselectAll();
+            if (!SelectionInputs.ShiftPressed) ClearSelection = true;
             SingleRay = PlayerCamera.ScreenPointToRay(SelectionInputs.EndMouseClick[1]);
             //Check if we hit more than 1 unit with a sphere cast
             return SphereCastNonAlloc(SingleRay, 0.5f, Hits, UnitLayer) > 1 ? 
@@ -143,10 +153,11 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         private void SingleHitSelect()
         {
             if (!SingleHit.transform.TryGetComponent(out Unit selectComp)) return;
-            if (selectComp.Regiment.IsSelected) return;
+            if (selectComp.GetRegiment.IsSelected) return;
             
-            RegimentSelected = selectComp.Regiment;
-            SelectRegister.Add(RegimentSelected);
+            RegimentSelected = selectComp.GetRegiment;
+            
+            RegimentsToSelect.Enqueue(RegimentSelected);
         }
 
         private bool BoxRaycast()
@@ -169,54 +180,22 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
                 Debug.DrawLine(PlayerCamera.ScreenToWorldPoint(UiCorners[i]), Hits[i].point, Color.red, 3.0f);
             }
         }
-        
-        /// <summary>
-        /// Wait until trigger life cycle end so every collision is register
-        /// then disable collider
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerator DisableAfterSelections()
-        {
-            yield return new WaitForFixedUpdate();
-            SelectionCollider.enabled = false;
-        }
 
         private async UniTask DisableAfter()
         {
-            Debug.Log($"1trigger? : {Time.frameCount}");
-            /*
-            AsyncTriggerEnterTrigger trigger = this.GetAsyncTriggerEnterTrigger();
-            SelectionCollider.enabled = true;
-            await trigger.OnTriggerEnterAsync();
-            await trigger.GetAsyncTriggerEnterTrigger().ForEachAsync(unitCollider =>
-            {
-                Debug.Log($"trigger collision : {unitCollider.gameObject.name}");
-                RegimentSelected = unitCollider.transform.GetComponent<UnitComponent>().Regiment;
-                if (RegimentSelected.TryGetComponent(out Regiment regComp))
-                {
-                    if (!regComp.IsSelected)
-                    {
-                        SelectRegister.Add(RegimentSelected);
-                    }//unit's regiment is already selected
-                }
-                //SelectionCollider.enabled = false;
-            });
-            
-            Debug.Log($"2trigger? : {Time.frameCount}");
-            */
             await UniTask.DelayFrame(5);
-            Debug.Log($"2trigger? : {Time.frameCount}");
             SelectionCollider.enabled = false;
         }
 
         //USE FOR DRAG SELECTION
         private void OnTriggerEnter(Collider unitCollider)
         {
-            RegimentSelected = unitCollider.transform.GetComponent<Unit>().Regiment;
+            RegimentSelected = unitCollider.transform.GetComponent<Unit>().GetRegiment;
             
             if(!RegimentSelected.TryGetComponent(out Regiment regComp)) return;
             if(regComp.IsSelected) return; //unit's regiment is already selected
-            SelectRegister.Add(RegimentSelected);
+            
+            RegimentsToSelect.Enqueue(RegimentSelected);
         }
         
         //VISUAL UI FOR RECTANGLE
@@ -225,7 +204,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         {
             if (!SelectionInputs.IsDragging || !SelectionInputs.LeftClick) return;
             Rect selectRectangle = GetScreenRect(SelectionInputs.StartMouseClick, SelectionInputs.EndMouseClick[0]);
-            DrawFullScreenRect(selectRectangle, 2, UiColor, UiBorderColor);
+            DrawFullScreenRect(selectRectangle, 2);
         }
     }
 }

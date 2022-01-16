@@ -64,7 +64,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""CtrlClick"",
+                    ""name"": ""SpaceClick"",
                     ""type"": ""Button"",
                     ""id"": ""2329b4c5-a2f3-41e4-83e0-056ed0659e87"",
                     ""expectedControlType"": ""Button"",
@@ -165,11 +165,11 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                 {
                     ""name"": """",
                     ""id"": ""c1d0f245-723e-4ca0-86fa-2ecd955e4dca"",
-                    ""path"": ""<Keyboard>/ctrl"",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": ""Press(behavior=2)"",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""CtrlClick"",
+                    ""action"": ""SpaceClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -184,7 +184,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
         m_MouseControl_PreselectMouseMove = m_MouseControl.FindAction("PreselectMouseMove", throwIfNotFound: true);
         m_MouseControl_SelectionMouseLeftClick = m_MouseControl.FindAction("SelectionMouseLeftClick", throwIfNotFound: true);
         m_MouseControl_PlacementRightClickMove = m_MouseControl.FindAction("PlacementRightClickMove", throwIfNotFound: true);
-        m_MouseControl_CtrlClick = m_MouseControl.FindAction("CtrlClick", throwIfNotFound: true);
+        m_MouseControl_SpaceClick = m_MouseControl.FindAction("SpaceClick", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -248,7 +248,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
     private readonly InputAction m_MouseControl_PreselectMouseMove;
     private readonly InputAction m_MouseControl_SelectionMouseLeftClick;
     private readonly InputAction m_MouseControl_PlacementRightClickMove;
-    private readonly InputAction m_MouseControl_CtrlClick;
+    private readonly InputAction m_MouseControl_SpaceClick;
     public struct MouseControlActions
     {
         private @SelectionInputController m_Wrapper;
@@ -257,7 +257,7 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
         public InputAction @PreselectMouseMove => m_Wrapper.m_MouseControl_PreselectMouseMove;
         public InputAction @SelectionMouseLeftClick => m_Wrapper.m_MouseControl_SelectionMouseLeftClick;
         public InputAction @PlacementRightClickMove => m_Wrapper.m_MouseControl_PlacementRightClickMove;
-        public InputAction @CtrlClick => m_Wrapper.m_MouseControl_CtrlClick;
+        public InputAction @SpaceClick => m_Wrapper.m_MouseControl_SpaceClick;
         public InputActionMap Get() { return m_Wrapper.m_MouseControl; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -279,9 +279,9 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                 @PlacementRightClickMove.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnPlacementRightClickMove;
                 @PlacementRightClickMove.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnPlacementRightClickMove;
                 @PlacementRightClickMove.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnPlacementRightClickMove;
-                @CtrlClick.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnCtrlClick;
-                @CtrlClick.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnCtrlClick;
-                @CtrlClick.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnCtrlClick;
+                @SpaceClick.started -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnSpaceClick;
+                @SpaceClick.performed -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnSpaceClick;
+                @SpaceClick.canceled -= m_Wrapper.m_MouseControlActionsCallbackInterface.OnSpaceClick;
             }
             m_Wrapper.m_MouseControlActionsCallbackInterface = instance;
             if (instance != null)
@@ -298,9 +298,9 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
                 @PlacementRightClickMove.started += instance.OnPlacementRightClickMove;
                 @PlacementRightClickMove.performed += instance.OnPlacementRightClickMove;
                 @PlacementRightClickMove.canceled += instance.OnPlacementRightClickMove;
-                @CtrlClick.started += instance.OnCtrlClick;
-                @CtrlClick.performed += instance.OnCtrlClick;
-                @CtrlClick.canceled += instance.OnCtrlClick;
+                @SpaceClick.started += instance.OnSpaceClick;
+                @SpaceClick.performed += instance.OnSpaceClick;
+                @SpaceClick.canceled += instance.OnSpaceClick;
             }
         }
     }
@@ -311,6 +311,6 @@ public partial class @SelectionInputController : IInputActionCollection2, IDispo
         void OnPreselectMouseMove(InputAction.CallbackContext context);
         void OnSelectionMouseLeftClick(InputAction.CallbackContext context);
         void OnPlacementRightClickMove(InputAction.CallbackContext context);
-        void OnCtrlClick(InputAction.CallbackContext context);
+        void OnSpaceClick(InputAction.CallbackContext context);
     }
 }

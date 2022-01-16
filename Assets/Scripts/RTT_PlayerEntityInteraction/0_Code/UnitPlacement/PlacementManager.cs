@@ -19,24 +19,19 @@ using quaternion = Unity.Mathematics.quaternion;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 {
-    public class PlacementSystem : MonoBehaviour
+    public class PlacementManager : MonoBehaviour
     {
-        private RegimentManager regimentManager;
-        
         [SerializeField] private GameObject token;
-        private SelectionRegister Register;
-
-        private const int SpaceBeetweenRegiment = 2; //2 units
+        
+        //====================================================
+        private SelectionData Selection = new SelectionData();
+        //====================================================
+        
+        private Camera PlayerCamera;
+        private bool TokensVisible;
+        
         //INPUT SYSTEM
         private PlayerEntityInteractionInputsManager Control;
-
-        //RAYCAST
-        private Camera PlayerCamera;
-        private RaycastHit Hit;
-        
-        //RAYCAST PROPERTIES
-        private Ray StartRay => PlayerCamera.ScreenPointToRay(MouseStartPosition);
-        private Ray EndRay => PlayerCamera.ScreenPointToRay(MouseEndPosition);
         
         //CONSTANT
         private readonly LayerMask TerrainLayer = 1 << 8;
@@ -55,39 +50,31 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private TransformAccessArray TransformAccesses;
         private NativeList<JobHandle> JobHandles;
         private JobHandle PlacementJobHandle;
-
+        
+        //RAYCAST PROPERTIES
+        private RaycastHit Hit;
+        private Ray StartRay => PlayerCamera.ScreenPointToRay(MouseStartPosition);
+        private Ray EndRay => PlayerCamera.ScreenPointToRay(MouseEndPosition);
         private bool HitGround(Ray ray) => Raycast(ray, out Hit, INFINITY, TerrainLayer);
+        public void SetSelectionData(in SelectionData data) => Selection = data;
 
         private void Awake()
         {
+            transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             PlayerCamera = Camera.main;
-            Register = GetComponent<SelectionRegister>();
-            
-            Control = GetComponent<PlayerEntityInteractionInputsManager>();
-
-            regimentManager = FindObjectOfType<RegimentManager>();
         }
 
         private void Start()
         {
+            Control = PlayerInteractionsSystem.Instance.GetInputs;
             Control.PlacementEvents.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
-            Control.CtrlEvents.EnableStartCancelEvent(OnStartCtrl, OnCancelCtrl);
-        }
-        
-        private void OnStartCtrl(InputAction.CallbackContext ctx)
-        {
-            regimentManager.Regiments.ForEach( regiment => regiment.EnablePlacementToken(true));
-        }
-        private void OnCancelCtrl(InputAction.CallbackContext ctx)
-        {
-            regimentManager.Regiments.ForEach( regiment => regiment.EnablePlacementToken(false));
         }
 
         private void OnDestroy() => Control.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
 
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
-            if (Register.Selections.Count == 0 || MouseStartPosition == ctx.ReadValue<Vector2>()) return;
+            if (Selection.NumSelection == 0 || MouseStartPosition == ctx.ReadValue<Vector2>()) return;
             
             MouseStartPosition = ctx.ReadValue<Vector2>();
             StartGroundHit = HitGround(StartRay) ? Hit.point : StartGroundHit;
@@ -97,7 +84,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         {
             //First : Update Mouse End Position Value
             MouseEndPosition = ctx.ReadValue<Vector2>();
-            int numSelection = Register.Selections.Count;
+            int numSelection = Selection.NumSelection;
             if( numSelection == 0) return;
             if (MouseEndPosition == MouseStartPosition) return;
             
@@ -105,21 +92,27 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             {
                 EndGroundHit = Hit.point;
                 LengthMouseDrag  = length(EndGroundHit - StartGroundHit);
-                if (LengthMouseDrag >= Register.MinRowLength - 1) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
+                
+                if (LengthMouseDrag >= Selection.MinRowLength - 1) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
+                    //SET Marker Visible!
+                    if (!TokensVisible)
+                    {
+                        TokensVisible = true;
+                        PlayerInteractionsSystem.Instance.StartPlaceEntity();
+                    }
+                    
                     JobHandles = new NativeList<JobHandle>(numSelection, Allocator.TempJob);
                     for (int i = 0; i < numSelection; i++)
                     {
-                        Regiment regiment = Register.Selections[i].GetComponent<Regiment>();
-                        using (TransformAccesses = new TransformAccessArray(regiment.GetPlacementTokens.ToArray()))
+                        Regiment regiment = Selection.GetSelections[i].GetComponent<Regiment>();
+                        using (TransformAccesses = new TransformAccessArray(regiment.PlacementTokens.ToArray()))
                         {
                             JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
-                                SelectionMaxUnitPerRow = Register.GetSelectionMaxUniPerRow(),
-                                StartSelectionChangeLength = Register.GetStartDragPlaceLength(),
-                                MaxSelectionLength = Register.MaxRowLength,
+                                StartSelectionChangeLength = Selection.StartDragPlaceLength,
                                 RegimentIndex = i,
-                                NumRegimentSelected = Register.Selections.Count,
+                                NumRegimentSelected = Selection.NumSelection,
                                 MinRowLength = regiment.GetRegimentType.minRow,
                                 MaxRowLength = regiment.GetRegimentType.maxRow,
                                 NumUnits = regiment.CurrentSize,
@@ -132,30 +125,6 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                     }
                     JobHandles.Dispose(JobHandles[^1]);
                 }
-                
-                
-                /*
-                Transform regiment = Register.Selections[0];
-                RegimentComponent regimentComp = regiment.GetComponent<RegimentComponent>();
-                EndGroundHit = Hit.point;
-                LengthMouseDrag = length(EndGroundHit - StartGroundHit);
-                float maxUnitLength = (regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset) * (regimentComp.GetRegimentType.maxRow);
-                if (LengthMouseDrag > (regimentComp.UnitSize.x * 4)) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
-                {
-                    using (TransformAccesses = new TransformAccessArray(regimentComp.PositionTokens))
-                    {
-                        JUnitsTokenPlacement job = new JUnitsTokenPlacement
-                        {
-                            MaxRowLength = regimentComp.GetRegimentType.maxRow,
-                            NumUnits = regimentComp.CurrentSize,
-                            FullUnitSize = regimentComp.UnitSize.x + regimentComp.GetRegimentType.positionOffset,
-                            StartPosition = StartGroundHit,
-                            EndPosition = EndGroundHit
-                        };
-                        PlacementJobHandle = job.Schedule(TransformAccesses);
-                    }
-                }
-                */
             }
         }
         
@@ -163,15 +132,14 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private void OnCancelMouseClick(InputAction.CallbackContext ctx)
         {
             Debug.Log("cancel");
+            //Hide Placer!
             //Apply new placement
         }
         
         //[BurstCompile(CompileSynchronously = true)]
         private struct JUnitsTokenPlacement : IJobParallelForTransform
         {
-            [ReadOnly] public int SelectionMaxUnitPerRow;
             [ReadOnly] public float StartSelectionChangeLength;
-            [ReadOnly] public float MaxSelectionLength;
             [ReadOnly] public int RegimentIndex;
             [ReadOnly] public int NumRegimentSelected;
             [ReadOnly] public int MinRowLength;
@@ -234,56 +202,5 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 return rowStart;
             }
         }
-/*
-        private void OnDrawGizmos()
-        {
-            if (StartGroundHit != Vector3.zero)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(StartGroundHit + Vector3.up, 0.5f);
-            }
-
-            if (EndGroundHit != Vector3.zero)
-            {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawSphere(EndGroundHit + Vector3.up, 0.5f);
-            }
-        }
-        */
     }
-    
-    //OLD
-    //[BurstCompile(CompileSynchronously = true)]
-    /*
-    public struct JPlacement : IJobFor
-    {
-        [ReadOnly]public float FullUnitSize;
-        [ReadOnly]public float3 StartPosition;
-        [ReadOnly]public float3 EndPosition;
-
-        public NativeArray<float3> UnitPositions;
-        public void Execute(int index)
-        {
-            int unitPerRow = (int)floor(length(EndPosition - StartPosition) / FullUnitSize);
-            int numRows = (int)ceil(UnitPositions.Length / (float)unitPerRow);
-            
-            int z = (int)floor((float)index / unitPerRow);
-            int x = index - (z * unitPerRow);
-            
-            float3 direction = normalize(EndPosition - StartPosition);
-            float3 crossDirection = normalize(cross(direction, up()));
-            
-            float3 rowStart = StartPosition + crossDirection * z;
-            float3 rowEnd = EndPosition + crossDirection * z;
-                    
-            float3 newDir = normalize(rowEnd - rowStart);
-                    
-            float3 unitPos = rowStart + (x * FullUnitSize) * newDir;
-            
-            unitPos.y = 2;
-
-            UnitPositions[index] = unitPos;
-        }
-    }
-    */
 }

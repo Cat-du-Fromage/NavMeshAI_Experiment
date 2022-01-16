@@ -24,33 +24,45 @@ namespace KaizerWaldCode.RTTUnits
     
     public class Regiment : MonoBehaviour
     {
+        
+        //List <IInterractle>
+        //whether the action is recieved get the correct IInterractle! if(IInterractle is SelectionEvent)
+        
         [SerializeField] private RegimentType regimentType; //Immutable DATA
         [SerializeField] private UnitType unitType; //Immutable DATA
 
-        public List<Unit> Units;// { get; private set; }
-        public List<IAttachable<Unit>> Attachables;
+        public List<Unit> Units { get; private set; }
+        public List<Renderer> SelectionTokensRenderers { get; private set; }
+        public List<Renderer> PlacementTokensRenderers{ get; private set; }
+        public List<Transform> PlacementTokens{ get; private set; }
 
         private Transform regimentTransform;
-        
-        public bool IsSelected { get; private set; }
+
+        public bool IsSelected { get; private set; } = false;
         
         public RegimentType GetRegimentType => regimentType;
         public UnitType GetUnit => unitType;
         public int CurrentSize  => Units.Count;
-        public List<Transform> GetPlacementTokens => GetComponent<PlacementComponent>().PlacementTokens;
-        public List<Renderer> GetPlacementRenderers => GetComponent<PlacementComponent>().PlacementRenderers;
-        
+
         //Unity Event
         //==============================================================================================================
         
         private void Awake()
         {
             Units = new List<Unit>(regimentType.baseNumUnits);
-            Attachables = GetComponents<IAttachable<Unit>>().ToList();
+            SelectionTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
+            PlacementTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
+            PlacementTokens = new List<Transform>(regimentType.baseNumUnits);
             regimentTransform = transform;
         }
 
-        private void Start() => CreateRegimentMembers();
+        private void Start()
+        {
+            CreateRegimentMembers();
+            InitSelectionRenderers();
+            InitPlacementTokens();
+            SetSelected(false);
+        }
 
         //Methods
         //==============================================================================================================
@@ -75,7 +87,21 @@ namespace KaizerWaldCode.RTTUnits
                 Vector3 newPos = GetUnitPosition(startPos, i);
                 Units.Add(CreateUnit(i, newPos));
                 Units[i].SetIndex(i);
-                Attachables.ForEach(attach => attach.AttachTo(Units[i]));
+            }
+        }
+
+        private void InitSelectionRenderers()
+        {
+            for (int i = 0; i < Units.Count; i++)
+                SelectionTokensRenderers.Add(Units[i].GetSelectionRenderer);
+        }
+
+        private void InitPlacementTokens()
+        {
+            for (int i = 0; i < Units.Count; i++)
+            {
+                PlacementTokensRenderers.Add(Instantiate(Units[i].GetPlacementToken));
+                PlacementTokens.Add(PlacementTokensRenderers[i].transform);
             }
         }
 
@@ -95,9 +121,12 @@ namespace KaizerWaldCode.RTTUnits
         public void SetSelected(bool enable)
         {
             IsSelected = enable;
-            GetComponent<IInteractable>().SetSelected(enable);
+            for (int i = 0; i < SelectionTokensRenderers.Count; i++) SelectionTokensRenderers[i].enabled = enable;
         }
-
-        public void EnablePlacementToken(bool enable) => GetComponent<PlacementComponent>().SetVisible(enable);
+        
+        public void EnablePlacementToken(bool enable)
+        {
+            for (int i = 0; i < PlacementTokensRenderers.Count; i++) PlacementTokensRenderers[i].enabled = enable;
+        }
     }
 }

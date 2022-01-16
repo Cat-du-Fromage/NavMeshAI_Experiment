@@ -6,6 +6,11 @@ namespace KWUtils
 {
     public static class KWRect
     {
+        //public static readonly Vector2[] defaultCorners = new Vector2[4] {Vector2.down, Vector2.one, Vector2.up ,Vector2.right};
+        
+        private static readonly Color defaultUiColor = new Color(0.8f,0.8f,0.95f,0.25f);
+        private static readonly Color defaultUiBorderColor = new Color(0.8f, 0.8f, 0.95f);
+        
         private static Texture2D whiteTexture;
         private static Texture2D WhiteTexture => whiteTexture == null ? GetWhiteTexture() : whiteTexture;
         private static Texture2D GetWhiteTexture()
@@ -16,10 +21,10 @@ namespace KWUtils
             return whiteTexture;
         }
 
-        public static void DrawFullScreenRect(Rect rect, float thickness, Color baseColor, Color border)
+        public static void DrawFullScreenRect(Rect rect, float thickness, Color? baseColor = null, Color? border = null)
         {
-            DrawScreenRect(rect, baseColor);
-            DrawScreenRectBorder(rect, thickness, border);
+            DrawScreenRect(rect, baseColor ?? defaultUiColor);
+            DrawScreenRectBorder(rect, thickness, border ?? defaultUiBorderColor);
         }
     
         public static void DrawScreenRect(Rect rect, Color color)
