@@ -24,29 +24,37 @@ namespace KaizerWaldCode.RTTUnits
     
     public class Regiment : MonoBehaviour
     {
+        public int Index { get; private set; }
+        
         [SerializeField] private RegimentType regimentType; //Immutable DATA
         [SerializeField] private UnitType unitType; //Immutable DATA
         
         private Transform regimentTransform;
         public List<Unit> Units { get; private set; }
         public List<Renderer> SelectionTokensRenderers { get; private set; }
-        public List<Renderer> PlacementTokensRenderers{ get; private set; }
-        public List<Transform> PlacementTokens { get; private set; }
+        public List<Renderer> DestinationTokensRenderers{ get; private set; }
+        public List<Transform> DestinationTokens { get; private set; }
+        public List<Transform> NestedPositionTokens { get; private set; }
         public bool IsSelected { get; private set; } = false;
         
         public ref readonly RegimentType GetRegimentType => ref regimentType;
         public ref readonly UnitType GetUnit => ref unitType;
         public int CurrentSize => Units.Count;
+        
+        //TEST FEATURE
+        private bool UnitMustMove = false;
 
         //Unity Event
         //==============================================================================================================
         
         private void Awake()
         {
+            Index = GetInstanceID();
             Units = new List<Unit>(regimentType.baseNumUnits);
             SelectionTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
-            PlacementTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
-            PlacementTokens = new List<Transform>(regimentType.baseNumUnits);
+            DestinationTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
+            DestinationTokens = new List<Transform>(regimentType.baseNumUnits);
+            NestedPositionTokens = new List<Transform>(regimentType.baseNumUnits);
             regimentTransform = transform;
             
             CreateRegimentMembers();
@@ -79,6 +87,7 @@ namespace KaizerWaldCode.RTTUnits
                 Vector3 newPos = GetUnitPosition(startPos, i);
                 Units.Add(CreateUnit(i, newPos));
                 Units[i].SetIndex(i);
+                NestedPositionTokens.Add(Units[i].GetComponentInChildren<PositionTokenComponent>().transform);
             }
         }
 
@@ -92,9 +101,9 @@ namespace KaizerWaldCode.RTTUnits
         {
             for (int i = 0; i < Units.Count; i++)
             {
-                PlacementTokensRenderers.Add(Instantiate(Units[i].GetPlacementToken));
-                PlacementTokens.Add(PlacementTokensRenderers[i].transform);
-                PlacementTokensRenderers[i].enabled = true;
+                DestinationTokensRenderers.Add(Instantiate(Units[i].GetPlacementToken));
+                DestinationTokens.Add(DestinationTokensRenderers[i].transform);
+                DestinationTokensRenderers[i].enabled = true;
             }
         }
 
@@ -119,8 +128,14 @@ namespace KaizerWaldCode.RTTUnits
         
         public void EnablePlacementToken(bool enable)
         {
-            for (int i = 0; i < PlacementTokens.Count; i++) PlacementTokens[i].gameObject.SetActive(enable);
-            //for (int i = 0; i < PlacementTokensRenderers.Count; i++) PlacementTokensRenderers[i].enabled = enable;
+            for (int i = 0; i < DestinationTokens.Count; i++) DestinationTokens[i].gameObject.SetActive(enable);
+        }
+
+        public void SetNewDestination()
+        {
+            for (int i = 0; i < NestedPositionTokens.Count; i++)
+                NestedPositionTokens[i].SetPositionAndRotation(DestinationTokens[i].position, DestinationTokens[i].rotation);
+            UnitMustMove = true;
         }
     }
 }

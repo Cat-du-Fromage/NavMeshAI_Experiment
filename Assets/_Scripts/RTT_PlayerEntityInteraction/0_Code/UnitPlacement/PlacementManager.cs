@@ -110,7 +110,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                     for (int i = 0; i < numSelection; i++)
                     {
                         Regiment regiment = Selection.GetSelections[i].GetComponent<Regiment>();
-                        using (TransformAccesses = new TransformAccessArray(regiment.PlacementTokens.ToArray()))
+                        using (TransformAccesses = new TransformAccessArray(regiment.DestinationTokens.ToArray()))
                         {
                             JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
@@ -135,9 +135,12 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         private void OnCancelMouseClick(InputAction.CallbackContext ctx)
         {
-            Debug.Log("cancel");
-            TokensVisible = false;
-            PlayerInteractionsSystem.Instance.EndPlaceEntity();
+            if (TokensVisible)
+            {
+                //Swap Position
+                TokensVisible = false;
+                PlayerInteractionsSystem.Instance.EndPlaceEntity();
+            }
             //Hide Placer!
             //Apply new placement
         }

@@ -14,7 +14,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
     /// - Selection / Deselection
     /// - Placement
     /// </summary>
-    public class PlayerInteractionsManager : MonoBehaviour
+    public class PlayerInteractionsManager : MonoBehaviour //Turn this into a Mediator!! and the other as IManager
     {
         [SerializeField] private RegimentManager regimentManager;
         [SerializeField] private PlacementManager placementManager;
@@ -103,20 +103,13 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         {
             for (int i = 0; i < Selections.Count; i++)
             {
+                Selections[i].SetNewDestination();
                 Selections[i].EnablePlacementToken(false);
             }
         }
 
-        private void ShowNestedPlacements()
-        {
-            for (int i = 0; i < regimentManager.GetNestedPlacementTokens.Count; i++)
-                regimentManager.GetNestedPlacementTokens[i].enabled = true;
-        }
+        private void ShowNestedPlacements() => regimentManager.UpdateNestedPlacementTokens(true);
 
-        private void HideNestedPlacements()
-        {
-            for (int i = 0; i < regimentManager.GetNestedPlacementTokens.Count; i++)
-                regimentManager.GetNestedPlacementTokens[i].enabled = false;
-        }
+        private void HideNestedPlacements() => regimentManager.UpdateNestedPlacementTokens(false);
     }
 }

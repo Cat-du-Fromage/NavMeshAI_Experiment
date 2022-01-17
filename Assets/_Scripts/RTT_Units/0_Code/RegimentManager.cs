@@ -19,11 +19,16 @@ namespace KaizerWaldCode.RTTUnits
         //ALL REGIMENTS
         private List<Regiment> Regiments;
         public ref readonly List<Regiment> GetRegiments => ref Regiments;
-        
-        //NESTED PLACEMENTS
-        private List<Renderer> NestedPlacementTokens;
-        public ref readonly List<Renderer> GetNestedPlacementTokens => ref NestedPlacementTokens;
 
+        //NESTED PLACEMENTS
+        private Dictionary<int, Renderer[]> NestedPlacementTokens;
+        public ref readonly Dictionary<int, Renderer[]> GetNestedPlacementTokens => ref NestedPlacementTokens;
+        
+        //DESTINATION TOKENS
+        private Dictionary<int, Renderer[]> DestinationTokens;
+        public Renderer[] GetDestinationTokens(int index) => DestinationTokens[index];
+        
+        //UNITS
         public int GetTotalUnits => Regiments.Sum(regiment => regiment.Units.Count);
 
         private void OnValidate() => regimentIndex = clamp(regimentIndex, 0, regimentPrefabs.Length-1);
@@ -32,11 +37,13 @@ namespace KaizerWaldCode.RTTUnits
         {
             Regiments = new List<Regiment>(numRegiment);
             CreateRegiment();
+            
+            //List<int> keyList = new List<int>(GetNestedPlacementTokens.Keys);
         }
 
         private void Start()
         {
-            NestedPlacementTokens = new List<Renderer>(GetTotalUnits);
+            NestedPlacementTokens = new Dictionary<int, Renderer[]>(numRegiment);
             InitFixedPlacementTokens();
         }
 
@@ -58,10 +65,23 @@ namespace KaizerWaldCode.RTTUnits
             Unit currentUnit;
             for (int i = 0; i < Regiments.Count; i++)
             {
+                Renderer[] tokens = new Renderer[Regiments[i].Units.Count];
                 for (int j = 0; j < Regiments[i].Units.Count; j++)
                 {
                     currentUnit = Regiments[i].Units[j];
-                    NestedPlacementTokens.Add(currentUnit.GetPlacementToken.GetComponent<Renderer>());
+                    tokens[j] = currentUnit.GetPlacementToken.GetComponent<Renderer>();
+                }
+                NestedPlacementTokens.Add(Regiments[i].Index, tokens);
+            }
+        }
+
+        public void UpdateNestedPlacementTokens(bool state)
+        {
+            foreach((int _, Renderer[] value) in NestedPlacementTokens)
+            {
+                for (int i = 0; i < value.Length; i++)
+                {
+                    value[i].enabled = state;
                 }
             }
         }

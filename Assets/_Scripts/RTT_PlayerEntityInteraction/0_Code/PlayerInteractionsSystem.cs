@@ -32,7 +32,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
     {
         public static PlayerInteractionsSystem Instance { get; private set; }
         
-        public PlayerEntityInteractionInputsManager InteractionsInputs;
+        private PlayerEntityInteractionInputsManager InteractionsInputs;
         public ref PlayerEntityInteractionInputsManager GetInputs => ref InteractionsInputs;
 
         protected override void Awake()

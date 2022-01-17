@@ -6,15 +6,19 @@ using UnityEngine;
 public class FlowFieldController : MonoBehaviour
 {
 
-    [Header("Field generation settings")]
+    [Header("Field generation settings")] 
+    
+    [SerializeField]private Mesh TerrainMesh;
+    
     // determines whether or not we will re-check for obstacles
+
     public bool dynamicObstacles;
 
     public float cellSize;
 
     // TODO: BUG, X AND Z ARE FLIPPED (HOW DID THIS HAPPEN???)
-    public Vector3 b1;
-    public Vector3 b2;
+    [SerializeField]private Vector3 b1;
+    [SerializeField]private Vector3 b2;
 
     public int obstacleLayer;
 
@@ -26,10 +30,10 @@ public class FlowFieldController : MonoBehaviour
     public bool showVectors;
 
     // Dictionary linking grid coordinates to passability values
-    Dictionary<Tuple<int,int>,int> obstacles;
+    private Dictionary<Tuple<int,int>,int> obstacles;
 
     // Dictionary linking grid coordinates to Vector3s of FlowField
-    Dictionary<Tuple<int,int>,Vector3> ff;
+    private Dictionary<Tuple<int,int>,Vector3> ff;
 
     // DijkstraGrid
     int[,] dGrid;
@@ -108,7 +112,8 @@ public class FlowFieldController : MonoBehaviour
             // }
 
             // show vectors
-            if(showVectors){
+            if(showVectors)
+            {
                 Gizmos.color = new Color(1, 1.0f, 1.0f, 1.0f);
                 foreach(KeyValuePair<Tuple<int,int>,Vector3> pair in ff)
                 {
