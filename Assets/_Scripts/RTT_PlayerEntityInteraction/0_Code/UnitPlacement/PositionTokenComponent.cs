@@ -10,6 +10,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
     //If not Set => token is on the unit
     public class PositionTokenComponent : MonoBehaviour
     {
+        //private bool Initialized = false;
         public bool IsDestinationSet { get; private set; } = false;
         public Transform UnitAttached { get; private set; }
 
@@ -17,9 +18,15 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         public void SetDestination(bool enable) => IsDestinationSet = enable;
 
+        /// <summary>
+        /// trick: so UnitAttached has a value when OnEnable is launch when GameObject is created
+        /// Note : the value is wrong during awake but reassign directly after
+        /// </summary>
+        private void Awake() => UnitAttached = FindObjectOfType<DestinationTokenComponent>().UnitAttached;
+
         private void OnEnable()
         {
-            if (IsDestinationSet || transform.position == UnitAttached.position) return;
+            if (IsDestinationSet || transform.position == UnitAttached?.position) return;
             transform.position = UnitAttached.position;
         }
     }

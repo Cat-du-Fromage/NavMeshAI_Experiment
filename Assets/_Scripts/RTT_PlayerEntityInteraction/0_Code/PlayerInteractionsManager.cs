@@ -19,6 +19,8 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         [SerializeField] private RegimentManager regimentManager;
         [SerializeField] private PlacementManager placementManager;
 
+        [SerializeField]private UnitMouvement unitMouvement;
+        
         private SelectionData SelectionData;
         
         //needed by Placement + Selection
@@ -104,7 +106,11 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             for (int i = 0; i < Selections.Count; i++)
             {
                 Selections[i].SetNewDestination();
+                //TEST
+                unitMouvement.SetUnitToUpdate(Selections[i]);
+                
                 Selections[i].EnablePlacementToken(false);
+                
             }
         }
 

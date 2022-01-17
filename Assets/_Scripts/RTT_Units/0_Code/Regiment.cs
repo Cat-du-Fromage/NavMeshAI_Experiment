@@ -9,6 +9,7 @@ using KaizerWaldCode.PlayerEntityInteractions.RTTSelection;
 using KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement;
 //using KaizerWaldCode.RTTUnitPlacement;
 using KWUtils;
+using Unity.VisualScripting;
 using UnityEngine;
 
 using static Unity.Mathematics.math;
@@ -34,7 +35,9 @@ namespace KaizerWaldCode.RTTUnits
         public List<Renderer> SelectionTokensRenderers { get; private set; }
         public List<Renderer> DestinationTokensRenderers{ get; private set; }
         public List<Transform> DestinationTokens { get; private set; }
+        
         public List<Transform> NestedPositionTokens { get; private set; }
+        public List<Renderer> NestedPositionTokenRenderers { get; private set; }
         public bool IsSelected { get; private set; } = false;
         
         public ref readonly RegimentType GetRegimentType => ref regimentType;
@@ -55,10 +58,12 @@ namespace KaizerWaldCode.RTTUnits
             DestinationTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
             DestinationTokens = new List<Transform>(regimentType.baseNumUnits);
             NestedPositionTokens = new List<Transform>(regimentType.baseNumUnits);
+            NestedPositionTokenRenderers = new List<Renderer>(regimentType.baseNumUnits);
             regimentTransform = transform;
             
             CreateRegimentMembers();
             InitSelectionRenderers();
+            InitDestinationTokens();
             InitPlacementTokens();
             SetSelected(false);
             EnablePlacementToken(false);
@@ -87,7 +92,6 @@ namespace KaizerWaldCode.RTTUnits
                 Vector3 newPos = GetUnitPosition(startPos, i);
                 Units.Add(CreateUnit(i, newPos));
                 Units[i].SetIndex(i);
-                NestedPositionTokens.Add(Units[i].GetComponentInChildren<PositionTokenComponent>().transform);
             }
         }
 
@@ -96,16 +100,33 @@ namespace KaizerWaldCode.RTTUnits
             for (int i = 0; i < Units.Count; i++)
                 SelectionTokensRenderers.Add(Units[i].GetSelectionRenderer);
         }
+        
+        private void InitDestinationTokens()
+        {
+            for (int i = 0; i < Units.Count; i++)
+            {
+                //"destination" : BEFORE nested because need unit value of destination! (OnEnable check issue..)
+                DestinationTokens.Add(Instantiate(unitType.positionTokenPrefab).transform);
+                DestinationTokens[i].AddComponent<DestinationTokenComponent>().AttachToUnit(Units[i].transform);
+                DestinationTokens[i].name = "DestinationToken";
+                DestinationTokensRenderers.Add(DestinationTokens[i].GetComponent<Renderer>());
+            }
+        }
 
         private void InitPlacementTokens()
         {
             for (int i = 0; i < Units.Count; i++)
             {
-                DestinationTokensRenderers.Add(Instantiate(Units[i].GetPlacementToken));
-                DestinationTokens.Add(DestinationTokensRenderers[i].transform);
-                DestinationTokensRenderers[i].enabled = true;
+                //"nested"
+                NestedPositionTokenRenderers.Add(Instantiate(unitType.positionTokenPrefab).GetComponent<Renderer>());
+                NestedPositionTokenRenderers[i].AddComponent<PositionTokenComponent>().AttachToUnit(Units[i].transform);
+                NestedPositionTokenRenderers[i].name = "NestedPositionToken";
+                NestedPositionTokenRenderers[i].enabled = false;
+                NestedPositionTokens.Add(NestedPositionTokenRenderers[i].transform);
             }
         }
+
+        
 
         /// <summary>
         /// Create a single Unit
@@ -133,9 +154,10 @@ namespace KaizerWaldCode.RTTUnits
 
         public void SetNewDestination()
         {
-            for (int i = 0; i < NestedPositionTokens.Count; i++)
-                NestedPositionTokens[i].SetPositionAndRotation(DestinationTokens[i].position, DestinationTokens[i].rotation);
+            for (int i = 0; i < NestedPositionTokenRenderers.Count; i++)
+                NestedPositionTokenRenderers[i].transform.SetPositionAndRotation(DestinationTokens[i].position, DestinationTokens[i].rotation);
             UnitMustMove = true;
+            
         }
     }
 }

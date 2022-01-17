@@ -21,16 +21,12 @@ namespace KaizerWaldCode.RTTUnits
     public class Unit : MonoBehaviour
     {
         [SerializeField] private Renderer selectionRenderer;
-        [SerializeField] private Renderer PlacementToken;
         public int Index { get; private set; }
         
         private Regiment Regiment;
         public ref readonly Regiment GetRegiment => ref Regiment;
         public ref readonly Renderer GetSelectionRenderer => ref selectionRenderer;
-        public ref readonly Renderer GetPlacementToken => ref PlacementToken;
 
-        private void Awake() => PlacementToken.GetComponent<Renderer>().enabled = false;
-        
         public void SetRegiment(in Regiment regiment) => Regiment = regiment;
         public void SetIndex(int index) => Index = index;
     }

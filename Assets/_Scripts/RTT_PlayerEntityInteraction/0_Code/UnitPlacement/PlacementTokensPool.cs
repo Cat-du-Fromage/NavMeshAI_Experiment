@@ -17,26 +17,22 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         private GameObject CreateToken()
         {
-            GameObject obj = Instantiate(prefab);
+            GameObject token = Instantiate(prefab);
+            token.AddComponent<DestinationTokenComponent>();
             //DestinationTokensRenderers.Add();
             //DestinationTokens.Add(DestinationTokensRenderers[i].transform);
             //DestinationTokensRenderers[i].enabled = true;
-            return obj;
+            return token;
         }
 
-        private void OnGet(GameObject prefab)
+        private void OnGet(GameObject token)
         {
-            
+            token.SetActive(true);
         }
         
-        private void OnRelease(GameObject prefab)
+        private void OnRelease(GameObject token)
         {
-            
-        }
-        
-        private void OnDestroy()
-        {
-            
+            token.SetActive(false);
         }
     }
 }

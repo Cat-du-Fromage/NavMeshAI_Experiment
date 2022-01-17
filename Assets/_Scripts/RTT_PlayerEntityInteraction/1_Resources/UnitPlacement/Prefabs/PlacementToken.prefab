@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 9089147944538885228}
   - component: {fileID: 1513205688389008722}
   - component: {fileID: 1143315859843557132}
-  - component: {fileID: 8582762764164862381}
   m_Layer: 0
-  m_Name: CurrentDestination
+  m_Name: PlacementToken
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -84,15 +83,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &8582762764164862381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6969508022250319429}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7a568b811c220f4fb80dc8001e87792, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

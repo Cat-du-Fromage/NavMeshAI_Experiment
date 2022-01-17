@@ -16,6 +16,9 @@ namespace KaizerWaldCode.RTTUnits
         [SerializeField] private int numRegiment, regimentIndex;
         [SerializeField] private GameObject[] regimentPrefabs;
 
+        //"SOLDIER" System-manager-soldier
+        private UnitMouvement unitMouvement;
+
         //ALL REGIMENTS
         private List<Regiment> Regiments;
         public ref readonly List<Regiment> GetRegiments => ref Regiments;
@@ -35,6 +38,7 @@ namespace KaizerWaldCode.RTTUnits
 
         private void Awake()
         {
+            unitMouvement = GetComponent<UnitMouvement>();
             Regiments = new List<Regiment>(numRegiment);
             CreateRegiment();
             
@@ -44,34 +48,24 @@ namespace KaizerWaldCode.RTTUnits
         private void Start()
         {
             NestedPlacementTokens = new Dictionary<int, Renderer[]>(numRegiment);
-            InitFixedPlacementTokens();
+            InitNestedPlacementTokens();
         }
 
-        // Start is called before the first frame update
-
+        //Might need to place this into a factory...
         private void CreateRegiment()
         {
-            GameObject newRegiment;
             for (int i = 0; i < numRegiment; i++)
             {
                 Vector3 position = Vector3.zero + Vector3.forward * (i+1) * 10;
-                newRegiment = Instantiate(regimentPrefabs[regimentIndex], position, Quaternion.identity);
-                Regiments.Add(newRegiment.GetComponent<Regiment>());
+                Regiments.Add(Instantiate(regimentPrefabs[regimentIndex], position, Quaternion.identity).GetComponent<Regiment>());
             }
         }
 
-        private void InitFixedPlacementTokens()
+        private void InitNestedPlacementTokens()
         {
-            Unit currentUnit;
             for (int i = 0; i < Regiments.Count; i++)
             {
-                Renderer[] tokens = new Renderer[Regiments[i].Units.Count];
-                for (int j = 0; j < Regiments[i].Units.Count; j++)
-                {
-                    currentUnit = Regiments[i].Units[j];
-                    tokens[j] = currentUnit.GetPlacementToken.GetComponent<Renderer>();
-                }
-                NestedPlacementTokens.Add(Regiments[i].Index, tokens);
+                NestedPlacementTokens.Add(Regiments[i].Index, Regiments[i].NestedPositionTokenRenderers.ToArray());
             }
         }
 
