@@ -1,5 +1,3 @@
-#pragma warning disable 4014
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,12 +16,13 @@ using static Unity.Mathematics.math;
 using static KWUtils.KWmesh;
 using static KWUtils.KWRect;
 using static KaizerWaldCode.PlayerEntityInteractions.RTTSelection.SelectionMeshUtils;
-using Unit = KaizerWaldCode.RTTUnits.Unit;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
-    public class SelectionManager : MonoBehaviour
+    public class SelectionManager : MonoBehaviour, ISelector<Regiment>
     {
+        public IMediator<Regiment> Mediator { get; set; }
+        
         //=========================================
         //SELECTION ORDER
         private Queue<Regiment> RegimentsToSelect;
@@ -64,7 +63,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
         private void Awake()
         {
             transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-            RegimentsToSelect = new Queue<Regiment>(2);
+            RegimentsToSelect = new Queue<Regiment>();
             PlayerCamera = Camera.main;
             SelectionMesh = InitializeMesh(SelectionMeshVertices);
             SelectionCollider = gameObject.InitializeCollider(SelectionMesh);
@@ -72,7 +71,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 
         private void Start()
         {
-            SelectionInputs = PlayerInteractionsSystem.Instance.GetInputs;
+            SelectionInputs ??= GetComponent<PlayerEntityInteractionInputsManager>();
             SelectEvents = SelectionInputs.SelectionEvents;
             SelectEvents.EnablePerformCancelEvent(OnPerformLeftClickMoveMouse, OnLeftClickRelease);
         }
@@ -87,13 +86,14 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             if (RegimentsToSelect.Count == 0 && !ClearSelection) return;
             if (ClearSelection)
             {
-                PlayerInteractionsSystem.Instance.ClearSelections();
+                Mediator.NotifyClearSelections(this);
                 ClearSelection = false;
+                return;
             }
-            else
+
+            for (int i = 0; i < RegimentsToSelect.Count; i++)
             {
-                for (int i = 0; i < RegimentsToSelect.Count; i++)
-                    PlayerInteractionsSystem.Instance.SelectEntity(RegimentsToSelect.Dequeue());
+                Mediator.NotifyEntitySelected(this, RegimentsToSelect.Dequeue());
             }
         }
 

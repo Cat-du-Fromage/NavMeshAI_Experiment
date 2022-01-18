@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
@@ -10,7 +11,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
     //If not Set => token is on the unit
     public class PositionTokenComponent : MonoBehaviour
     {
-        //private bool Initialized = false;
+        private bool Init = false;
         public bool IsDestinationSet { get; private set; } = false;
         public Transform UnitAttached { get; private set; }
 
@@ -22,12 +23,17 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         /// trick: so UnitAttached has a value when OnEnable is launch when GameObject is created
         /// Note : the value is wrong during awake but reassign directly after
         /// </summary>
-        private void Awake() => UnitAttached = FindObjectOfType<DestinationTokenComponent>().UnitAttached;
+        private void Awake() => UnitAttached = null;
 
         private void OnEnable()
         {
-            if (IsDestinationSet || transform.position == UnitAttached?.position) return;
+            if (IsDestinationSet || !Init || transform.position == UnitAttached.position) return;
             transform.position = UnitAttached.position;
+        }
+
+        private void Start()
+        {
+            //IsDestinationSet = false;
         }
     }
 }
