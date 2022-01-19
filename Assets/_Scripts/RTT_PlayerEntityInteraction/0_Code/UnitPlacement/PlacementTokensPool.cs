@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using KaizerWaldCode.RTTUnits;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -46,9 +47,9 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             objects.Clear();
         }
         
-        public void ReleaseAll(ref Dictionary<int, Transform[]> transforms)
+        public void ReleaseAll(ref Dictionary<Regiment, Transform[]> transforms)
         {
-            foreach ((int _, Transform[] value) in transforms)
+            foreach ((Regiment _, Transform[] value) in transforms)
             {
                 for (int i = 0; i < value.Length; i++)
                 {

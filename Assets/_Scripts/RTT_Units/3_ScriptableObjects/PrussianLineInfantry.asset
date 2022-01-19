@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 259f5e852aff464da81d37e69aaf0120, type: 3}
   m_Name: PrussianLineInfantry
   m_EditorClassIdentifier: 
-  unitPrefab: {fileID: 854274783225195262, guid: 2bcf48ba373478345ac380d7fc01ec8f, type: 3}
+  unitPrefab: {fileID: 1478616378740584268, guid: 92bd7e939c78c4b42a3bb0fa91d68387, type: 3}
   positionTokenPrefab: {fileID: 6969508022250319429, guid: cf1d57aa67d635346a93778a737f44b5, type: 3}
-  unitSize: 1.0000001
+  unitWidth: 1.0000001
+  unitHeight: 0.1553831

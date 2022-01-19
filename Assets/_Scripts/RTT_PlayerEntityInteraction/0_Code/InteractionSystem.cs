@@ -43,7 +43,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         
         //PLACEMENT NOTIFIER
 
-        public void NotifyDestinationSet(IPlacement<Regiment> sender, Dictionary<int,Transform[]> nextDestinations)
+        public void NotifyDestinationSet(IPlacement<Regiment> sender, Dictionary<Regiment,Transform[]> nextDestinations)
         {
             regimentManager.OnDestinationSet(nextDestinations);
         }

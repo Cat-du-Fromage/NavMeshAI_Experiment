@@ -12,7 +12,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
         public void NotifyEntitySelected(ISelector<T> sender, T entitySelected);
         public void NotifyClearSelections(ISelector<T> sender);
         //Placement
-        public void NotifyDestinationSet(IPlacement<T> sender, Dictionary<int,Transform[]> keys);
+        public void NotifyDestinationSet(IPlacement<T> sender, Dictionary<T,Transform[]> keys);
         public void NotifyDisplayTokens(IPlacement<T> sender, bool enable);
     }
 }

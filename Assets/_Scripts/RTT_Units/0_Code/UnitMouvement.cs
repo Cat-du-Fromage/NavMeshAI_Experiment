@@ -25,7 +25,7 @@ namespace KaizerWaldCode.RTTUnits
                 if (!units.Contains(regiment.Units[i]))
                 {
                     units.Add(regiment.Units[i]);
-                    targets.Add(regiment.NestedPositionTokens[i]);
+                    targets.Add(regiment.DestinationTokens[i]);
                 }
                     
             }

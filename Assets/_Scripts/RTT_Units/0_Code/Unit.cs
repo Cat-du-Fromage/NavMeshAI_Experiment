@@ -22,12 +22,15 @@ namespace KaizerWaldCode.RTTUnits
     {
         [SerializeField] private Renderer selectionRenderer;
         public int Index { get; private set; }
+        public Regiment Regiment { get; private set; }
         
-        private Regiment Regiment;
-        public ref readonly Regiment GetRegiment => ref Regiment;
         public ref readonly Renderer GetSelectionRenderer => ref selectionRenderer;
-
         public void SetRegiment(in Regiment regiment) => Regiment = regiment;
         public void SetIndex(int index) => Index = index;
+
+        private void Awake()
+        {
+            selectionRenderer ??= GetComponentInChildren<SelectionTag>().transform.GetComponent<Renderer>();
+        }
     }
 }

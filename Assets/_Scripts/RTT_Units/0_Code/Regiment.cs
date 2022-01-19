@@ -7,7 +7,6 @@ using System.Linq;
 using KaizerWaldCode.PlayerEntityInteractions;
 using KaizerWaldCode.PlayerEntityInteractions.RTTSelection;
 using KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement;
-//using KaizerWaldCode.RTTUnitPlacement;
 using KWUtils;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -16,36 +15,22 @@ using static Unity.Mathematics.math;
 
 namespace KaizerWaldCode.RTTUnits
 {
-    //Regiment?
-    //Data Holder?
-    //
-    
-    //SUR! : Reference Units!
-    //SUR! : Reference Units Immutable DATA!
-    
     public class Regiment : MonoBehaviour
     {
         public int Index { get; private set; }
+        public bool IsSelected { get; private set; } = false;
         
         [SerializeField] private RegimentType regimentType; //Immutable DATA
         [SerializeField] private UnitType unitType; //Immutable DATA
         
         private Transform regimentTransform;
         public List<Unit> Units { get; private set; }
-        //public List<Renderer> SelectionTokensRenderers { get; private set; }
-        //public List<Renderer> DestinationTokensRenderers{ get; private set; }
-        //public List<Transform> DestinationTokens { get; private set; }
-        
-        public List<Transform> NestedPositionTokens { get; private set; }
-        public List<Renderer> NestedPositionTokenRenderers { get; private set; }
-        public bool IsSelected { get; private set; } = false;
+
+        public List<Transform> DestinationTokens { get; private set; }
         
         public ref readonly RegimentType GetRegimentType => ref regimentType;
         public ref readonly UnitType GetUnit => ref unitType;
         public int CurrentSize => Units.Count;
-        
-        //SetSelected(bool) : select/deselect all units
-        public void SetSelected(bool enable) => IsSelected = enable;
         
         //TEST FEATURE
         private bool UnitMustMove = false;
@@ -57,19 +42,12 @@ namespace KaizerWaldCode.RTTUnits
         {
             Index = GetInstanceID();
             Units = new List<Unit>(regimentType.baseNumUnits);
-            //SelectionTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
-            //DestinationTokensRenderers = new List<Renderer>(regimentType.baseNumUnits);
-            //DestinationTokens = new List<Transform>(regimentType.baseNumUnits);
-            NestedPositionTokens = new List<Transform>(regimentType.baseNumUnits);
-            NestedPositionTokenRenderers = new List<Renderer>(regimentType.baseNumUnits);
+            DestinationTokens = new List<Transform>(regimentType.baseNumUnits);
             regimentTransform = transform;
             
             CreateRegimentMembers();
-            //InitSelectionRenderers();
-            //InitDestinationTokens();
             InitPlacementTokens();
             SetSelected(false);
-            //EnablePlacementToken(false);
         }
 
         //Methods
@@ -97,23 +75,16 @@ namespace KaizerWaldCode.RTTUnits
                 Units[i].SetIndex(i);
             }
         }
-/*
-        private void InitSelectionRenderers()
-        {
-            for (int i = 0; i < Units.Count; i++)
-                SelectionTokensRenderers.Add(Units[i].GetSelectionRenderer);
-        }
-        */
+        
         private void InitPlacementTokens()
         {
             for (int i = 0; i < Units.Count; i++)
             {
                 //"nested"
-                NestedPositionTokenRenderers.Add(Instantiate(unitType.positionTokenPrefab).GetComponent<Renderer>());
-                NestedPositionTokenRenderers[i].AddComponent<PositionTokenComponent>().AttachToUnit(Units[i].transform);
-                NestedPositionTokenRenderers[i].name = "NestedPositionToken";
-                NestedPositionTokenRenderers[i].enabled = false;
-                NestedPositionTokens.Add(NestedPositionTokenRenderers[i].transform);
+                DestinationTokens.Add(Instantiate(unitType.positionTokenPrefab).transform);
+                DestinationTokens[i].AddComponent<PositionTokenComponent>().AttachToUnit(Units[i].transform);
+                DestinationTokens[i].name = "NestedPositionToken";
+                DestinationTokens[i].gameObject.SetActive(false);
             }
         }
         
@@ -127,6 +98,39 @@ namespace KaizerWaldCode.RTTUnits
             newUnit.name = $"{regimentTransform.name}_{unitType.unitPrefab.name}{index}";
             unit.SetRegiment(this);
             return unit;
+        }
+
+        public void SetNewDestination(in Transform[] newDestination)
+        {
+            for (int i = 0; i < DestinationTokens.Count; i++)
+            {
+                DestinationTokens[i].position = newDestination[i].position;
+            }
+        }
+
+        /// <summary>
+        /// DESTINATION : Enable/Disable
+        /// </summary>
+        /// <param name="enable"></param>
+        public void DisplayDestination(bool enable)
+        {
+            for (int i = 0; i < DestinationTokens.Count; i++)
+            {
+                DestinationTokens[i].gameObject.SetActive(enable);;
+            }
+        }
+
+        /// <summary>
+        /// SELECTION : Enable/Disable
+        /// </summary>
+        /// <param name="enable"></param>
+        public void SetSelected(bool enable)
+        {
+            IsSelected = enable;
+            for (int i = 0; i < Units.Count; i++)
+            {
+                Units[i].GetSelectionRenderer.enabled = enable;
+            }
         }
     }
 }

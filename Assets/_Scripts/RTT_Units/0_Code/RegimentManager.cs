@@ -9,8 +9,9 @@ using static Unity.Mathematics.math;
 namespace KaizerWaldCode.RTTUnits
 {
     public class RegimentManager : MonoBehaviour, IEntityGroup<Regiment>
-
     {
+        public IMediator<Regiment> Mediator { get; set; }
+        
         [SerializeField] private int numRegiment, regimentIndex;
         [SerializeField] private GameObject[] regimentPrefabs;
 
@@ -22,20 +23,12 @@ namespace KaizerWaldCode.RTTUnits
         public ref readonly List<Regiment> GetRegiments => ref Regiments;
         
         //SELECTED REGIMENT
-        private List<Regiment> SelectedRegiments;
-
-        //NESTED PLACEMENTS
-        private Dictionary<int, Renderer[]> NestedPlacementTokens;
-        public ref readonly Dictionary<int, Renderer[]> GetNestedPlacementTokens => ref NestedPlacementTokens;
-
-        //DESTINATION TOKENS
-        //private Dictionary<int, Renderer[]> DestinationTokens;
-        //public Renderer[] GetDestinationTokens(int index) => DestinationTokens[index];
-
+        private HashSet<Regiment> SelectedRegiments;
+        
         //UNITS
         public int GetTotalUnits => Regiments.Sum(regiment => regiment.Units.Count);
         
-        public IMediator<Regiment> Mediator { get; set; }
+        
 
         private void OnValidate() => regimentIndex = clamp(regimentIndex, 0, regimentPrefabs.Length - 1);
 
@@ -43,14 +36,8 @@ namespace KaizerWaldCode.RTTUnits
         {
             unitMouvement = GetComponent<UnitMouvement>();
             Regiments = new List<Regiment>(numRegiment);
-            SelectedRegiments = new List<Regiment>(1);
+            SelectedRegiments = new HashSet<Regiment>(1);
             CreateRegiment();
-        }
-
-        private void Start()
-        {
-            NestedPlacementTokens = new Dictionary<int, Renderer[]>(numRegiment);
-            InitNestedPlacementTokens();
         }
 
         //Might need to place this into a factory...
@@ -58,40 +45,21 @@ namespace KaizerWaldCode.RTTUnits
         {
             for (int i = 0; i < numRegiment; i++)
             {
-                Vector3 position = Vector3.zero + Vector3.forward * (i + 1) * 10;
+                Vector3 position = Vector3.zero + (i + 1) * 10 * Vector3.forward;
                 Regiments.Add(Instantiate(regimentPrefabs[regimentIndex], position, Quaternion.identity)
                     .GetComponent<Regiment>());
             }
         }
-
-        private void InitNestedPlacementTokens()
-        {
-            for (int i = 0; i < Regiments.Count; i++)
-            {
-                NestedPlacementTokens.Add(Regiments[i].Index, Regiments[i].NestedPositionTokenRenderers.ToArray());
-            }
-        }
-
 
 //MEDIATOR EVENT : RECIEVER
 //======================================================================================================================
 
         //SELECTION
         //==============================================================================================================
-        public void OnDisplaySelectionToken(Regiment regiment, bool enable)
-        {
-            for (int i = 0; i < regiment.Units.Count; i++)
-            {
-                regiment.Units[i].GetSelectionRenderer.enabled = enable;
-            }
-        }
-        
         public void OnRegimentSelected(Regiment regiment)
         {
-            if (SelectedRegiments.Contains(regiment)) return;
-            SelectedRegiments.Add(regiment);
+            if (!SelectedRegiments.Add(regiment)) return;
             regiment.SetSelected(true);
-            OnDisplaySelectionToken(regiment, true);
         }
 
         public void OnClearSelections()
@@ -99,37 +67,30 @@ namespace KaizerWaldCode.RTTUnits
             foreach (Regiment regiment in SelectedRegiments)
             {
                 regiment.SetSelected(false);
-                OnDisplaySelectionToken(regiment, false);
             }
             SelectedRegiments.Clear();
         }
         
         //PLACEMENT
         //==============================================================================================================
-        public void OnDestinationSet(Dictionary<int, Transform[]> keys)
+        public void OnDestinationSet(Dictionary<Regiment, Transform[]> keys)
         {
-            foreach ((int key, Transform[] value) in keys)
+            foreach ((Regiment regiment, Transform[] unitsDestinations) in keys)
             {
-                for (int i = 0; i < value.Length; i++)
-                {
-                    NestedPlacementTokens[key][i].transform.position = value[i].transform.position;
-                }
+                regiment.SetNewDestination(unitsDestinations);
             }
 
-            for (int i = 0; i < SelectedRegiments.Count; i++)
+            foreach (Regiment regiment in SelectedRegiments)
             {
-                unitMouvement.SetUnitToUpdate(SelectedRegiments[i]);
+                unitMouvement.SetUnitToUpdate(regiment);
             }
         }
 
         public void OnDisplayDestinationTokens(bool enable)
         {
-            foreach ((int _, Renderer[] value) in NestedPlacementTokens)
+            foreach (Regiment regiment in Regiments)
             {
-                for (int i = 0; i < value.Length; i++)
-                {
-                    value[i].enabled = enable;
-                }
+                regiment.DisplayDestination(enable);
             }
         }
     }

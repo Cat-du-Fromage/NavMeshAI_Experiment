@@ -31,9 +31,6 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             transform.position = UnitAttached.position;
         }
 
-        private void Start()
-        {
-            //IsDestinationSet = false;
-        }
+        private void Start() => Init = true;
     }
 }

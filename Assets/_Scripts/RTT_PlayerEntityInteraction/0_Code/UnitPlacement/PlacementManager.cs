@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using KaizerWaldCode.Globals;
 using KaizerWaldCode.RTTUnits;
 using KaizerWaldCode.Utils;
 using KWUtils;
@@ -26,58 +27,21 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         [SerializeField] private PlacementTokensPool token;
         public IMediator<Regiment> Mediator { get; set; }
 
-        public void UpdateSelectionData(in Regiment regiment)
-        {
-            if (Selection.GetSelections.Contains(regiment)) return;
-            Selection.OnAddRegiment(regiment);
-            Transform[] tokens = new Transform[regiment.Units.Count];
-            
-            for (int i = 0; i < regiment.Units.Count; i++)
-            {
-                GameObject pooledToken = token.tokens.Get();
-                tokens[i] = pooledToken.transform;
-                NextDestinationsRenderer.Add(tokens[i].GetComponent<Renderer>());
-            }
-            NextDestinations.Add(regiment.Index, tokens);
-        }
-
-        public void ClearSelectionData()
-        {
-            NextDestinationsRenderer.Clear();
-            token.ReleaseAll(ref NextDestinations);
-            NextDestinations.Clear();
-            Selection.OnClearRegiment();
-            
-        }
-        //====================================================
-        private SelectionData Selection = new SelectionData();
-
-        //private List<GameObject> Pool = new List<GameObject>();
-
-        private Dictionary<int, Transform[]> NextDestinations = new Dictionary<int, Transform[]>();
-
-        //private List<Transform> NextDestinations = new List<Transform>();
-        private List<Renderer> NextDestinationsRenderer = new List<Renderer>();
-
-        private void DisplayNextDestination(bool enable)
-        {
-            for (int i = 0; i < NextDestinationsRenderer.Count; i++)
-            {
-                NextDestinationsRenderer[i].enabled = enable;
-            }
-        }
         
+        //====================================================
+        private readonly SelectionData Selection = new SelectionData();
+        private readonly List<Renderer> NextDestinationsRenderer = new List<Renderer>();
+        private Dictionary<Regiment, Transform[]> NextDestinations = new Dictionary<Regiment, Transform[]>();
+        
+
         //====================================================
         
         private Camera PlayerCamera;
         private bool TokensVisible;
         
         //INPUT SYSTEM
-        [SerializeField]private PlayerEntityInteractionInputsManager Control;
-        
-        //CONSTANT
-        private readonly LayerMask TerrainLayer = 1 << 8;
-        
+        [SerializeField]private PlayerEntityInteractionInputsManager inputs;
+
         //CACHED MOUSE POSITION ON SCREEN
         private Vector2 MouseStartPosition;
         private Vector2 MouseEndPosition;
@@ -97,8 +61,32 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private RaycastHit Hit;
         private Ray StartRay => PlayerCamera.ScreenPointToRay(MouseStartPosition);
         private Ray EndRay => PlayerCamera.ScreenPointToRay(MouseEndPosition);
-        private bool HitGround(Ray ray) => Raycast(ray, out Hit, INFINITY, TerrainLayer);
-        public void SetSelectionData(in SelectionData data) => Selection = data;
+        private bool HitGround(Ray ray) => Raycast(ray, out Hit, INFINITY, StaticDatas.TerrainLayer);
+        
+        private void DisplayNextDestination(bool enable) => NextDestinationsRenderer.ForEach(r => r.enabled = enable);
+
+        public void UpdateSelectionData(in Regiment regiment)
+        {
+            if (Selection.GetSelections.Contains(regiment)) return;
+            Selection.OnAddRegiment(regiment);
+            Transform[] tokens = new Transform[regiment.Units.Count];
+            
+            for (int i = 0; i < regiment.Units.Count; i++)
+            {
+                GameObject pooledToken = token.tokens.Get();
+                tokens[i] = pooledToken.transform;
+                NextDestinationsRenderer.Add(tokens[i].GetComponent<Renderer>());
+            }
+            NextDestinations.Add(regiment, tokens);
+        }
+
+        public void ClearSelectionData()
+        {
+            NextDestinationsRenderer.Clear();
+            token.ReleaseAll(ref NextDestinations);
+            NextDestinations.Clear();
+            Selection.OnClearRegiment();
+        }
 
         private void Awake()
         {
@@ -108,14 +96,14 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         private void Start()
         {
-            Control ??= GetComponent<PlayerEntityInteractionInputsManager>();
-            Control.SpaceEvents.EnableStartCancelEvent(OnStartCtrl, OnCancelCtrl);
-            Control.PlacementEvents.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
+            inputs ??= GetComponent<PlayerEntityInteractionInputsManager>();
+            inputs.SpaceEvents.EnableStartCancelEvent(OnStartSpace, OnCancelSpace);
+            inputs.PlacementEvents.EnableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
         }
-        private void OnDestroy() => Control.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
+        private void OnDestroy() => inputs.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
         
-        private void OnStartCtrl(InputAction.CallbackContext ctx) => Mediator.NotifyDisplayTokens(this,true);
-        private void OnCancelCtrl(InputAction.CallbackContext ctx) => Mediator.NotifyDisplayTokens(this,false);
+        private void OnStartSpace(InputAction.CallbackContext ctx) => Mediator.NotifyDisplayTokens(this,true);
+        private void OnCancelSpace(InputAction.CallbackContext ctx) => Mediator.NotifyDisplayTokens(this,false);
         
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
@@ -139,8 +127,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         {
             //First : Update Mouse End Position Value
             MouseEndPosition = ctx.ReadValue<Vector2>();
-            int numSelection = Selection.NumSelection;
-            if( numSelection == 0) return;
+            if( Selection.NumSelection == 0) return;
             if (MouseEndPosition == MouseStartPosition) return;
             
             if (HitGround(EndRay))
@@ -157,18 +144,18 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                         DisplayNextDestination(true);
                     }
                     
-                    JobHandles = new NativeList<JobHandle>(numSelection, Allocator.TempJob);
+                    JobHandles = new NativeList<JobHandle>(Selection.NumSelection, Allocator.TempJob);
                     
                     int currentIteration = 0;
-                    foreach((int _, Transform[] value) in NextDestinations)
+                    foreach((Regiment regiment, Transform[] value) in NextDestinations)
                     {
-                        Regiment regiment = Selection.GetSelections[currentIteration];
+                        //Regiment regiment = Selection.GetSelections[currentIteration];
                         using (TransformAccesses = new TransformAccessArray(value))
                         {
                             JUnitsTokenPlacement job = new JUnitsTokenPlacement
                             {
                                 StartSelectionChangeLength = Selection.StartDragPlaceLength,
-                                RegimentIndex = currentIteration,
+                                RegimentIndex = currentIteration, //Change this, this is not the index of the regiment! but index in the loop
                                 NumRegimentSelected = Selection.NumSelection,
                                 MinRowLength = regiment.GetRegimentType.minRow,
                                 MaxRowLength = regiment.GetRegimentType.maxRow,

@@ -16,13 +16,8 @@ namespace KWUtils
         
         public static bool IsAbove(this Vector2 centerPoint, Vector2 otherPoint) => centerPoint.y > otherPoint.y;
         public static bool IsAbove(this float2 centerPoint, float2 otherPoint) => centerPoint.y > otherPoint.y;
-        /*
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MinMax( ref int inputValue, in int valMin, in int valMax)
-        {
-            inputValue = max(valMin, min(inputValue, valMax));
-        }
-*/
+        
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float MinMax(float valMin, float valMax, float input)
         {
@@ -328,6 +323,15 @@ namespace KWUtils
             CameraTransform.localRotation =  selfRot;
          
          */
+         //VECTOR
+         public static Vector3 Direction(in Vector3 end, in Vector3 start)
+         {
+            return (end - start).normalized;
+         }
          
+         public static float3 Direction(in float3 end, in float3 start)
+         {
+             return normalize(end - start);
+         }
     }
 }
