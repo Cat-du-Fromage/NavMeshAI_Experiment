@@ -115,6 +115,11 @@ namespace KaizerWaldCode.RTTUnits
                     NestedPlacementTokens[key][i].transform.position = value[i].transform.position;
                 }
             }
+
+            for (int i = 0; i < SelectedRegiments.Count; i++)
+            {
+                unitMouvement.SetUnitToUpdate(SelectedRegiments[i]);
+            }
         }
 
         public void OnDisplayDestinationTokens(bool enable)

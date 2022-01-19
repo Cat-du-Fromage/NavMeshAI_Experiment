@@ -36,7 +36,7 @@ namespace KaizerWaldCode.RTTUnits
             //Issue unit wont be at destination at the end of the loop
             //condition to stay in queue?
             if (units.Count == 0) return;
-            Debug.Log($"Update Start");
+            //Debug.Log($"Update Start");
             for (int i = 0; i < units.Count; i++)
             {
                 if (units[i].transform.position == targets[i].position)
