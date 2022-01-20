@@ -174,10 +174,9 @@ public class DijkstraGrid
             {
                     if (cellDetails[tempCell.row, tempCell.col].distance == -1)
                     {
-
-                    //Check if destination is blocked
-                    if (isUnBlocked(dijkstraGrid,tempCell.row, tempCell.col))
-                    {
+                        //Check if destination is blocked
+                        if (isUnBlocked(dijkstraGrid,tempCell.row, tempCell.col))
+                        {
                             //grab the parent's indices
                             int parent_i = cellDetails[tempCell.row, tempCell.col].parent_i;
                             int parent_j = cellDetails[tempCell.row, tempCell.col].parent_j;
@@ -190,46 +189,45 @@ public class DijkstraGrid
                             j = tempCell.col;
 
 
-                        if (j + 1 < COL) //check for within bounds
-                        {
-                            //check if it has been unvisited (parent set to -1,-1)
-                            if ((cellDetails[i, j + 1].parent_i == -1) && (cellDetails[i, j + 1].parent_j == -1)){
-                                cellDetails[i, j + 1].parent_i = i;
-                                cellDetails[i, j + 1].parent_j = j;
-                                toVisit.Enqueue(cellDetails[i, j + 1]); //right
-                            }
-                        }
-
-                        if (i > 0)
-                        {
-                            if ((cellDetails[i - 1, j].parent_i == -1) && (cellDetails[i - 1, j].parent_j == -1))
+                            if (j + 1 < COL) //check for within bounds
                             {
-                                cellDetails[i - 1, j].parent_i = i;
-                                cellDetails[i - 1, j].parent_j = j;
-                                toVisit.Enqueue(cellDetails[i - 1, j]); //down
+                                //check if it has been unvisited (parent set to -1,-1)
+                                if ((cellDetails[i, j + 1].parent_i == -1) && (cellDetails[i, j + 1].parent_j == -1)){
+                                    cellDetails[i, j + 1].parent_i = i;
+                                    cellDetails[i, j + 1].parent_j = j;
+                                    toVisit.Enqueue(cellDetails[i, j + 1]); //right
+                                }
                             }
-                        }
-
-                        if (j > 0)
-                        {
-                            if ((cellDetails[i, j - 1].parent_i == -1) && (cellDetails[i, j - 1].parent_j == -1))
+    
+                            if (i > 0)
                             {
-                                cellDetails[i, j - 1].parent_i = i;
-                                cellDetails[i, j - 1].parent_j = j;
-                                toVisit.Enqueue(cellDetails[i, j - 1]); //left
+                                if ((cellDetails[i - 1, j].parent_i == -1) && (cellDetails[i - 1, j].parent_j == -1))
+                                {
+                                    cellDetails[i - 1, j].parent_i = i;
+                                    cellDetails[i - 1, j].parent_j = j;
+                                    toVisit.Enqueue(cellDetails[i - 1, j]); //down
+                                }
                             }
-                        }
-
-                        if (i + 1 < ROW)
-                        {
-                            if ((cellDetails[i + 1, j].parent_i == -1) && (cellDetails[i + 1, j].parent_j == -1))
+    
+                            if (j > 0)
                             {
-                                cellDetails[i + 1, j].parent_i = i;
-                                cellDetails[i + 1, j].parent_j = j;
-                                toVisit.Enqueue(cellDetails[i + 1, j]); //up
+                                if ((cellDetails[i, j - 1].parent_i == -1) && (cellDetails[i, j - 1].parent_j == -1))
+                                {
+                                    cellDetails[i, j - 1].parent_i = i;
+                                    cellDetails[i, j - 1].parent_j = j;
+                                    toVisit.Enqueue(cellDetails[i, j - 1]); //left
+                                }
                             }
-                        }
-
+    
+                            if (i + 1 < ROW)
+                            {
+                                if ((cellDetails[i + 1, j].parent_i == -1) && (cellDetails[i + 1, j].parent_j == -1))
+                                {
+                                    cellDetails[i + 1, j].parent_i = i;
+                                    cellDetails[i + 1, j].parent_j = j;
+                                    toVisit.Enqueue(cellDetails[i + 1, j]); //up
+                                }
+                            }
                         }
                         else
                         {
@@ -246,10 +244,10 @@ public class DijkstraGrid
             //String s = "";
             for(j = 0; j < COL; j++)
             {
-                    if (dijkstraGrid[i, j] != Int32.MaxValue)
-                    {
-                        dijkstraGrid[i, j] = cellDetails[i, j].distance;
-                    }
+                if (dijkstraGrid[i, j] != Int32.MaxValue)
+                {
+                    dijkstraGrid[i, j] = cellDetails[i, j].distance;
+                }
             }
         }
 
