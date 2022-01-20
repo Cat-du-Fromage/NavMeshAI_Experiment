@@ -6,6 +6,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using static Unity.Mathematics.math;
+using float2 = Unity.Mathematics.float2;
 using float3 = Unity.Mathematics.float3;
 
 namespace KWUtils
@@ -43,7 +44,7 @@ namespace KWUtils
         /// </summary>
         /// <param name="i">index</param>
         /// <param name="w">width of the Grid</param>
-        /// <returns>Int x, Int y</returns>
+        /// <returns>Int X, Int Y(return in this order)</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static (int,int) GetXY(this int i, int w)
         {
@@ -118,6 +119,20 @@ namespace KWUtils
         //You need to precompute the hashGrid to use the function
         //may need either : NativeArray<Position> PointInsideHashGrid OR NativeArray<ID> CellId containing the point
         //=====================================
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int2 GetGridCoordFromPosition(this float3 pointPos, int gridSize, float spacing, int numCell)
+        {
+            float percentX = pointPos.x / (gridSize * spacing);
+            float percentY = pointPos.z / (gridSize * spacing);
+
+            percentX = Mathf.Clamp01(percentX);
+            percentY = Mathf.Clamp01(percentY);
+ 
+            int x = Mathf.Clamp(Mathf.FloorToInt((gridSize) * percentX), 0, gridSize - 1);
+            int y = Mathf.Clamp(Mathf.FloorToInt((gridSize) * percentY), 0, gridSize - 1);
+            return int2(x,y);
+        }
 
         /// <summary>
         /// Find the index of the cells a point belongs to
