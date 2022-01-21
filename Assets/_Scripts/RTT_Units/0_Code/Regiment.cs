@@ -58,7 +58,7 @@ namespace KaizerWaldCode.RTTUnits
             (int x, int y) = index.GetXY(regimentType.maxRow/2);
             Vector3 newPos = startPos;
             newPos.x = (startPos.x) + (unitType.unitWidth + regimentType.offsetInRow) * (x+1);
-            newPos.y = 2f; //real unit size not the token
+            newPos.y = 1f; //real unit size not the token
             newPos.z = startPos.z + (y+1);
             return newPos;
         }

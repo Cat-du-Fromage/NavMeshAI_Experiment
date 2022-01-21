@@ -8,19 +8,8 @@ using static KWUtils.KWmath;
 
 namespace KaizerWaldCode.Grid
 {
-    public enum FlowFieldDisplayType
-    {
-        None,
-        AllIcons,
-        DestinationIcon,
-        CostField,
-        IntegrationField
-    };
-    
     public class GridSettings : MonoBehaviour
     {
-        [SerializeField] private FlowFieldDisplayType curDisplayType;
-        
         [SerializeField] private bool displayGrid;
         
         [SerializeField] private MeshFilter terrain;
@@ -37,15 +26,9 @@ namespace KaizerWaldCode.Grid
         public int ChunkSize { get; private set; }
         public int NumChunk { get; private set; }
         public int PointPerMeter { get; private set; }
-
         public int MapSize { get; private set; }
-        
-        public int ChunkPointPerAxis { get; private set; }
-        public int MapPointPerAxis { get; private set; }
         public float PointSpacing { get; private set; }
 
-        public int[] test;
-        
         private FlowField FlowField;
         
 #if UNITY_EDITOR  
@@ -73,12 +56,9 @@ namespace KaizerWaldCode.Grid
                 MapSize = chunkSize * numChunk;
                 PointSpacing = 1f / (pointPerMeter - 1f);
             }
-
-            //transform.position = new Vector3(0 - MapSize / 2, 0, 0 - MapSize / 2);
+            
             editorMapSize = MapSize;
             editorPointSpacing = PointSpacing;
-            //ChunkPointPerAxis = (chunkSize * pointPerMeter) - (chunkSize - 1);
-            //MapPointPerAxis = (numChunk * chunkSize) * pointPerMeter - (numChunk * chunkSize - 1);
         }
 #endif
 
@@ -95,7 +75,7 @@ namespace KaizerWaldCode.Grid
             if (UseTerrainSize)
             {
                 MapSize = (int)(terrain.sharedMesh.bounds.size.x * terrain.transform.localScale.x);
-                PointSpacing = MapSize / (pointPerMeter - 1f);
+                PointSpacing = 1f / (pointPerMeter - 1f);
             }
             else
             {
@@ -105,57 +85,31 @@ namespace KaizerWaldCode.Grid
             
             editorMapSize = MapSize;
             editorPointSpacing = PointSpacing;
-            //ChunkPointPerAxis = (chunkSize * pointPerMeter) - (chunkSize - 1);
-            //MapPointPerAxis = (numChunk * chunkSize) * pointPerMeter - (numChunk * chunkSize - 1);
+            
             FlowField = new FlowField();
-            FlowField.InitGrid(float3(20f,0,12f), this);
-            test = FlowField.CellsCost;
+            FlowField.InitGrid(float3(10f,0,10f), this);
         }
 
         private void OnDrawGizmos()
         {
             if (displayGrid)
             {
+                GUIStyle style = new GUIStyle(GUI.skin.label);
+                style.alignment = TextAnchor.MiddleCenter;
+                float cellRadius = PointSpacing / 2f;
+                
                 if (FlowField == null)
                 {
-                    DrawGrid(int2(MapSize), Color.yellow, PointSpacing/2f);
+                    DrawGrid(int2(MapSize), Color.yellow, cellRadius, false, style);
                 }
                 else
                 {
-                    DrawGrid(int2(MapSize), Color.green, PointSpacing/2f);
+                    DrawGrid(int2(MapSize), Color.green, cellRadius, true, style);
                 }
             }
-            /*
-            if (FlowField == null) { return; }
- 
-            GUIStyle style = new GUIStyle(GUI.skin.label);
-            style.alignment = TextAnchor.MiddleCenter;
- 
-            switch (curDisplayType)
-            {
-                case FlowFieldDisplayType.CostField:
- 
-                    foreach (float3 curCell in FlowField.CellsPosition)
-                    {
-                        //Handles.Label(curCell.worldPos, curCell.cost.ToString(), style);
-                    }
-                    break;
-                
-                case FlowFieldDisplayType.IntegrationField:
- 
-                    foreach (Cell curCell in curFlowField.grid)
-                    {
-                        //Handles.Label(curCell.worldPos, curCell.bestCost.ToString(), style);
-                    }
-                    break;
-                
-                default:
-                    break;
-            }
-            */
         }
 
-        private void DrawGrid(int2 drawGridSize, Color drawColor, float drawCellRadius)
+        private void DrawGrid(int2 drawGridSize, Color drawColor, float drawCellRadius, bool flowfield, GUIStyle style)
         {
             Gizmos.color = drawColor;
             for (int x = 0; x < drawGridSize.x; x++)
@@ -169,6 +123,11 @@ namespace KaizerWaldCode.Grid
                         (drawCellRadius * 2 * y + drawCellRadius) + offset);
                     Vector3 size = Vector3.one * drawCellRadius * 2;
                     Gizmos.DrawWireCube(center, size);
+                    if (flowfield)
+                    {
+                        
+                        Handles.Label(center, FlowField.CellsCost[mad(y,drawGridSize.y,x)].ToString(), style);
+                    }
                 }
             }
         }

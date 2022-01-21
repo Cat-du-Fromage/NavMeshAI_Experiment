@@ -23,9 +23,13 @@ namespace KaizerWaldCode.Grid
         public void InitGrid(float3 targetPosition, GridSettings gc)
         {
             CellsCost = new int[sq(gc.MapSize)];
-            int index = targetPosition.Get2DCellID(gc.MapSize, gc.PointSpacing, gc.MapSize);
-            PositioninGrid = index.GetXY2(gc.MapSize);
-Debug.Log($"Target at index {index} coord {PositioninGrid}");
+            float2 test = float2(0 - (gc.MapSize / 2f));
+            float3 offset = new float3((gc.MapSize / 2f),0, (gc.MapSize / 2f));
+            int index1 = targetPosition.Get2DCellID(gc.MapSize, gc.PointSpacing, offset);
+            int2 index = targetPosition.GetGridCoordFromPosition(gc.MapSize, gc.PointSpacing);
+            Debug.Log($"PERCENT METHOD {index} for {targetPosition}");
+            PositioninGrid = index1.GetXY2(gc.MapSize);
+            Debug.Log($"Target at index {index1} coord {PositioninGrid}");
             NativeArray<int> tempGrid = new NativeArray<int>(sq(gc.MapSize), Allocator.TempJob);
 
             JCellsCost job = new JCellsCost
@@ -34,6 +38,7 @@ Debug.Log($"Target at index {index} coord {PositioninGrid}");
                 NumCellMap = gc.MapSize,
                 CellCostGrid = tempGrid
             };
+            
             JobHandle jh = job.ScheduleParallel(sq(gc.MapSize), JobsUtility.JobWorkerCount - 1, default);
             jh.Complete();
             tempGrid.CopyTo(CellsCost);
@@ -41,7 +46,37 @@ Debug.Log($"Target at index {index} coord {PositioninGrid}");
         }
     }
     
+    
+    
     /// <summary>
+    /// Process Cell Index
+    /// </summary>
+    public struct JCellsCost : IJobFor
+    {
+        [ReadOnly] public int2 TargetGridPos;
+        [ReadOnly] public int NumCellMap;
+
+        [NativeDisableParallelForRestriction]
+        [WriteOnly] public NativeArray<int> CellCostGrid;
+        
+        public void Execute(int index)
+        {
+            (int x, int z) = index.GetXY(NumCellMap);
+
+            int varX = abs(x - TargetGridPos.x);
+            int varY = abs(z - TargetGridPos.y);
+
+            CellCostGrid[index] = varX + varY;
+        }
+    }
+}
+
+
+
+
+
+/*
+ /// <summary>
     /// Process cells Positions
     /// </summary>
     public struct JCellsPosition : IJobFor
@@ -92,26 +127,4 @@ Debug.Log($"Target at index {index} coord {PositioninGrid}");
             }
         }
     }
-    
-    /// <summary>
-    /// Process Cell Index
-    /// </summary>
-    public struct JCellsCost : IJobFor
-    {
-        [ReadOnly] public int2 TargetGridPos;
-        [ReadOnly] public int NumCellMap;
-
-        [NativeDisableParallelForRestriction]
-        [WriteOnly] public NativeArray<int> CellCostGrid;
-        
-        public void Execute(int index)
-        {
-            (int x, int z) = index.GetXY(NumCellMap);
-
-            int varX = (int)(x - TargetGridPos.x);
-            int varY = (int)abs(z - TargetGridPos.y);
-
-            CellCostGrid[index] = varX - varY;
-        }
-    }
-}
+*/

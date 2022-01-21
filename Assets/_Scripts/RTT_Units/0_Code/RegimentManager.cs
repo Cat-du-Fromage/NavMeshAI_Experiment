@@ -28,8 +28,6 @@ namespace KaizerWaldCode.RTTUnits
         //UNITS
         public int GetTotalUnits => Regiments.Sum(regiment => regiment.Units.Count);
         
-        
-
         private void OnValidate() => regimentIndex = clamp(regimentIndex, 0, regimentPrefabs.Length - 1);
 
         private void Awake()

@@ -230,7 +230,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
                 unitPos += offsetRegiment * direction; //Add + regiment offset
 
-                unitPos.y = 2; // need to delete/replace this
+                unitPos.y = 1; // need to delete/replace this
 
                 transform.position = unitPos;
                 transform.rotation = quaternion.LookRotation(-crossDirection, up());
