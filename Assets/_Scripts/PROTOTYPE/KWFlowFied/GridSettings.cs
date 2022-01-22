@@ -30,6 +30,8 @@ namespace KaizerWaldCode.Grid
         public float PointSpacing { get; private set; }
 
         private FlowField FlowField;
+
+        //public int[] realCost;
         
 #if UNITY_EDITOR  
         //DEBUG PURPOSE
@@ -88,6 +90,8 @@ namespace KaizerWaldCode.Grid
             
             FlowField = new FlowField();
             FlowField.InitGrid(float3(10f,0,10f), this);
+            //realCost = new int[FlowField.CellsCost.Length];
+            //realCost = FlowField.CellsCost;
         }
 
         private void OnDrawGizmos()
@@ -112,21 +116,23 @@ namespace KaizerWaldCode.Grid
         private void DrawGrid(int2 drawGridSize, Color drawColor, float drawCellRadius, bool flowfield, GUIStyle style)
         {
             Gizmos.color = drawColor;
-            for (int x = 0; x < drawGridSize.x; x++)
+            for (int y = 0; y < drawGridSize.y; y++)
             {
-                for (int y = 0; y < drawGridSize.y; y++)
+                for (int x = 0; x < drawGridSize.x; x++)
                 {
-                    float offset = 0 - MapSize / 2;
+                    int index = (y * drawGridSize.y) + x;
+                    //float offset = 0 - MapSize / 2;
+                    /*
                     Vector3 center = new Vector3(
                         (drawCellRadius * 2 * x + drawCellRadius) + offset,
                         0,
-                        (drawCellRadius * 2 * y + drawCellRadius) + offset);
+                        (drawCellRadius * 2 * y + drawCellRadius) + offset);*/
+                    Vector3 center = FlowField.CellsCenterPosition[index];
                     Vector3 size = Vector3.one * drawCellRadius * 2;
                     Gizmos.DrawWireCube(center, size);
                     if (flowfield)
                     {
-                        
-                        Handles.Label(center, FlowField.CellsCost[mad(y,drawGridSize.y,x)].ToString(), style);
+                        Handles.Label(center, FlowField.CellsCost[index].ToString(), style);
                     }
                 }
             }

@@ -7,29 +7,42 @@ using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 
+using static KaizerWaldCode.Globals.StaticDatas;
 using static Unity.Mathematics.math;
 using static KWUtils.KWGrid;
 using static KWUtils.KWmath;
+using static KWUtils.NativeCollectionUtils;
 using float3 = Unity.Mathematics.float3;
 
 namespace KaizerWaldCode.Grid
 {
     public class FlowField
     {
+        //Center Cell
+        public Vector3[] CellsCenterPosition;
+        
+        //Cost Value Cell
         public int[] CellsCost;
+        
         public int2 PositioninGrid;
 
 
         public void InitGrid(float3 targetPosition, GridSettings gc)
         {
+            //Init Arrays
+            CellsCenterPosition = new Vector3[sq(gc.MapSize)];
             CellsCost = new int[sq(gc.MapSize)];
-            float2 test = float2(0 - (gc.MapSize / 2f));
+            
+            //INIT POSITIONS
+            GridCellPositions(gc);
+
+            //float2 test = float2(0 - (gc.MapSize / 2f));
             float3 offset = new float3((gc.MapSize / 2f),0, (gc.MapSize / 2f));
             int index1 = targetPosition.Get2DCellID(gc.MapSize, gc.PointSpacing, offset);
-            int2 index = targetPosition.GetGridCoordFromPosition(gc.MapSize, gc.PointSpacing);
-            Debug.Log($"PERCENT METHOD {index} for {targetPosition}");
+            //int2 index = targetPosition.GetGridCoordFromPosition(gc.MapSize, gc.PointSpacing);
+            
             PositioninGrid = index1.GetXY2(gc.MapSize);
-            Debug.Log($"Target at index {index1} coord {PositioninGrid}");
+            
             NativeArray<int> tempGrid = new NativeArray<int>(sq(gc.MapSize), Allocator.TempJob);
 
             JCellsCost job = new JCellsCost
@@ -43,6 +56,37 @@ namespace KaizerWaldCode.Grid
             jh.Complete();
             tempGrid.CopyTo(CellsCost);
             tempGrid.Dispose();
+
+            GetObstaclesGrid(gc);
+        }
+
+        public void GridCellPositions(GridSettings settings)
+        {
+            using NativeArray<float3> cellPos = AllocNtvAry<float3>(CellsCenterPosition.Length);
+
+            JCellsPosition job = new JCellsPosition
+            {
+                HalfMapOffset = settings.MapSize/2,
+                PointPerAxis = settings.MapSize,
+                Spacing = settings.PointSpacing,
+                Vertices = cellPos
+            };
+            JobHandle jh = job.ScheduleParallel(CellsCenterPosition.Length, JobsUtility.JobWorkerCount - 1, default);
+            jh.Complete();
+            cellPos.Reinterpret<Vector3>().CopyTo(CellsCenterPosition);
+        }
+
+        //Retrieve all obstacle and attribute them +255
+        public void GetObstaclesGrid(GridSettings settings)
+        {
+            Vector3 cellHalfExtents = Vector3.one * settings.PointSpacing/2f;
+            float radius = settings.PointSpacing / 2f;
+            for (int i = 0; i < CellsCenterPosition.Length; i++)
+            {
+                //if (!Physics.CheckSphere(CellsCenterPosition[i], radius, ObstacleLayer)) continue;
+                if (!Physics.CheckBox(CellsCenterPosition[i], cellHalfExtents, Quaternion.identity,ObstacleLayer)) continue;
+                CellsCost[i] += 255; 
+            }
         }
     }
     
@@ -69,19 +113,14 @@ namespace KaizerWaldCode.Grid
             CellCostGrid[index] = varX + varY;
         }
     }
-}
-
-
-
-
-
-/*
- /// <summary>
-    /// Process cells Positions
+    
+    /// <summary>
+    /// Get Cells Center
     /// </summary>
     public struct JCellsPosition : IJobFor
     {
         //MapSettings
+        [ReadOnly] public int HalfMapOffset; //DONT FORGET THIS ONE!
         [ReadOnly] public int PointPerAxis;
         [ReadOnly] public float Spacing;
 
@@ -91,10 +130,18 @@ namespace KaizerWaldCode.Grid
         public void Execute(int index)
         {
             (int x, int z) = index.GetXY(PointPerAxis);
-            float3 pointPosition = float3(x, 0, z) * float3(Spacing);
+            float3 pointPosition = float3(x-HalfMapOffset, 0, z-HalfMapOffset) * float3(Spacing) + (float3(Spacing/ 2f,0,Spacing/ 2f));
             Vertices[index] = pointPosition;
         }
     }
+}
+
+
+
+
+
+/*
+
 
     /// <summary>
     /// Process Cell Index

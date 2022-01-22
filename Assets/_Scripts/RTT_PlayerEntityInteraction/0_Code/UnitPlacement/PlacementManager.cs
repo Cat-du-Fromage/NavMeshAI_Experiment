@@ -160,7 +160,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                                 MinRowLength = regiment.GetRegimentType.minRow,
                                 MaxRowLength = regiment.GetRegimentType.maxRow,
                                 NumUnits = regiment.CurrentSize,
-                                FullUnitSize = regiment.GetUnit.unitWidth + regiment.GetRegimentType.offsetInRow,
+                                FullUnitSize = regiment.GetUnitType.unitWidth + regiment.GetRegimentType.offsetInRow,
                                 StartPosition = StartGroundHit,
                                 EndPosition = EndGroundHit
                             };

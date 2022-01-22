@@ -29,7 +29,7 @@ namespace KaizerWaldCode.RTTUnits
         public List<Transform> DestinationTokens { get; private set; }
         
         public ref readonly RegimentType GetRegimentType => ref regimentType;
-        public ref readonly UnitType GetUnit => ref unitType;
+        public ref readonly UnitType GetUnitType => ref unitType;
         public int CurrentSize => Units.Count;
         
         //TEST FEATURE
