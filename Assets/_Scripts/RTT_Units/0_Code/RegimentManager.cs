@@ -23,8 +23,9 @@ namespace KaizerWaldCode.RTTUnits
         public ref readonly List<Regiment> GetRegiments => ref Regiments;
         
         //SELECTED REGIMENT
-        private HashSet<Regiment> SelectedRegiments;
-        
+        public HashSet<Regiment> SelectedRegiments;
+
+        public bool IsSelections => SelectedRegiments.Count != 0;
         //UNITS
         public int GetTotalUnits => Regiments.Sum(regiment => regiment.Units.Count);
         
