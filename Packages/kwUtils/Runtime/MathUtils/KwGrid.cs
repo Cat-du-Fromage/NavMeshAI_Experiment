@@ -121,10 +121,12 @@ namespace KWUtils
         //=====================================
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int2 GetGridCoordFromPosition(this float3 pointPos, int gridSize, float spacing)
+        public static int2 GetCoordFromPosition(this float3 pointPos, int gridSize, float spacing)
         {
-            float percentX = abs(pointPos.x) / (gridSize * spacing);
-            float percentY = abs(pointPos.z) / (gridSize * spacing);
+            float mapOffset = gridSize / 2f;
+            
+            float percentX = (pointPos.x + mapOffset) / (gridSize * spacing);
+            float percentY = (pointPos.z + mapOffset) / (gridSize * spacing);
             
             percentX = clamp(percentX, 0, 1f); //CAREFUL NEED ABS!
             percentY = clamp(percentY, 0, 1f); //CAREFUL NEED ABS!
@@ -132,7 +134,24 @@ namespace KWUtils
             int x = clamp((int)floor((gridSize) * percentX), 0, gridSize - 1);
             int y = clamp((int)floor((gridSize) * percentY), 0, gridSize - 1);
             
-            return int2(abs(x-gridSize/2),abs(y-gridSize/2));
+            return int2(x,y);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetIndexFromPosition(this float3 pointPos, int gridSize, float spacing)
+        {
+            float mapOffset = gridSize / 2f;
+            
+            float percentX = (pointPos.x + mapOffset) / (gridSize * spacing);
+            float percentY = (pointPos.z + mapOffset) / (gridSize * spacing);
+            
+            percentX = clamp(percentX, 0, 1f); //CAREFUL NEED ABS!
+            percentY = clamp(percentY, 0, 1f); //CAREFUL NEED ABS!
+ 
+            int x = clamp((int)floor(gridSize * percentX), 0, gridSize - 1);
+            int y = clamp((int)floor(gridSize * percentY), 0, gridSize - 1);
+            //Debug.Log($"valX {x} valY {y}");
+            return mad(y, gridSize, x);
         }
 
         /// <summary>

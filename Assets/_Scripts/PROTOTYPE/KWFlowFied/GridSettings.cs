@@ -35,11 +35,12 @@ namespace KaizerWaldCode.Grid
 
         //public int[] realCost;
         
-#if UNITY_EDITOR  
+#if UNITY_EDITOR
         //DEBUG PURPOSE
         public int editorMapSize;
         public float editorPointSpacing;
 
+        private string MaxDebug = "Max";
         private void OnValidate()
         {
             if(terrain == null) terrain = GameObject.FindWithTag("TerrainTag").GetComponent<MeshFilter>();
@@ -132,13 +133,19 @@ namespace KaizerWaldCode.Grid
                     Vector3 center = FlowField.CellsCenterPosition[index];
                     Vector3 size = Vector3.one * drawCellRadius * 2;
                     //Gizmos.DrawWireCube(center, size);
+                    //Gizmos.color = Color.red;
+                    //Gizmos.DrawWireSphere(FlowField.CellsCenterPosition[index]-(Vector3.up/2f), 0.1f);
                     if (flowfield)
                     {
                         string text = FlowField.CellsBestCost[index] >= ushort.MaxValue
-                            ? "Max"
+                            ? MaxDebug
                             : FlowField.CellsBestCost[index].ToString();
+                        if (FlowField.CellsBestCost[index] >= ushort.MaxValue) continue;
                         Handles.Label(center, text, style);
+                        
+                        
                     }
+                    
                 }
             }
         }

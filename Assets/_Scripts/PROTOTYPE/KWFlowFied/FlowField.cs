@@ -8,6 +8,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 
+using static UnityEngine.Physics;
 using static KaizerWaldCode.Globals.StaticDatas;
 using static Unity.Mathematics.math;
 using static KWUtils.KWGrid;
@@ -29,144 +30,42 @@ namespace KaizerWaldCode.Grid
         public int2 PositioninGrid;
 
 
-        public void InitGrid(float3 targetPosition, GridSettings gc)
+        public void InitGrid(in float3 targetPosition, in GridSettings gc)
         {
             //Init Arrays
             CellsCenterPosition = new Vector3[sq(gc.MapSize)];
             CellsCost = new int[sq(gc.MapSize)];
             CellsBestCost = new int[sq(gc.MapSize)];
-            
+            Array.Fill(CellsBestCost, ushort.MaxValue);
             //INIT POSITIONS
             GridCellPositions(gc);
-
-            //float2 test = float2(0 - (gc.MapSize / 2f));
-            float3 offset = new float3((gc.MapSize / 2f),0, (gc.MapSize / 2f));
-            int index1 = targetPosition.Get2DCellID(gc.MapSize, gc.PointSpacing, offset);
-            //int2 index = targetPosition.GetGridCoordFromPosition(gc.MapSize, gc.PointSpacing);
-            
-            PositioninGrid = index1.GetXY2(gc.MapSize);
-            
+            //Obstacle Map
             GetObstaclesGrid(gc);
+            //Best Cost
+            BestCostJob(targetPosition, gc);
+        }
 
-            NativeArray<int> cellsBestCost = AllocFillNtvAry<int>(CellsBestCost.Length, ushort.MaxValue);
-            NativeArray<int> cellsCost = CellsCost.ToNativeArray();
-            
-            Queue<int> cellsToCheck = new Queue<int>();
+        public void BestCostJob(in float3 targetPosition, in GridSettings gc)
+        {
+            int destinationIndex = targetPosition.GetIndexFromPosition(gc.MapSize, gc.PointSpacing);
 
-            /*
-            JCellCost job = new JCellCost
+            using NativeArray<int> tempCost = CellsCost.ToNativeArray();
+            using NativeArray<int> tempBestCost = CellsBestCost.ToNativeArray();
+
+            JCellBestCost job = new JCellBestCost
             {
-                DestinationCellIndex = index1,
+                DestinationCellIndex = destinationIndex,
                 PointPerAxis = gc.MapSize,
-                CellsCost = cellCost,
-                CellsBestCost = cellsBestCost,
-                cellsToCheck = cellsToCheck,
+                CellsCost = tempCost,
+                CellsBestCost = tempBestCost
             };
             JobHandle jh = job.Schedule();
             jh.Complete();
-            cellsBestCost.CopyTo(CellsBestCost);
-            cellCost.CopyTo(CellsCost);
-            
-            */
-            
-            cellsCost[index1] = 0;
-            cellsBestCost[index1] = 0;
-            
-            //NativeQueue<int> cellsToCheck = new NativeQueue<int>(Allocator.Temp);
-            cellsToCheck.Enqueue(index1);
-
-            for (int k = 0; k < 100; k++)
-            {
-                if (k != 0 && cellsToCheck.Count == 0)
-                {
-                    Debug.Log($"Queue left {cellsToCheck.Count}");
-                    return;
-                }
-                //Debug.Log($"Queue left {cellsToCheck.Count}");
-                
-            //while(cellsToCheck.Count > 0)
-            //{
-                int currentCellIndex = cellsToCheck.Dequeue();
-                //Debug.Log(currentCellIndex);
-                //Debug.Log($"DestCell = {cellsCost[currentCellIndex]} AND {cellsBestCost[currentCellIndex]}");
-                /*
-                if (cellsCost[currentCellIndex] == 0)
-                {
-                    for (int i = 0; i < 4; i++)
-                    {
-                        int adjacentIndex = index1.AdjCellFromIndex((1 << i), currentCellIndex.GetXY2(gc.MapSize), gc.MapSize);
-                        Debug.Log($"Adj = {Enum.GetName(typeof(AdjacentCell), (1 << i))} = {adjacentIndex}");
-                    }
-                }
-                */
-                List<int> curNeighbors = GetNeighborCells(currentCellIndex, gc, GridDirection.CardinalDirections);
-                //using NativeList<int> curNeighbors = GetNeighborCells(currentCellIndex, gc);
-
-                foreach (int neighborIndex in curNeighbors)
-                {
-                    Debug.Log($"COST? {cellsCost[neighborIndex]}");
-                    if (cellsCost[neighborIndex] >= byte.MaxValue)
-                    {
-                        Debug.Log($"is happens");
-                        continue;
-                    }
-                    if (cellsCost[neighborIndex] + cellsCost[currentCellIndex] < cellsBestCost[neighborIndex])
-                    {
-                        cellsBestCost[neighborIndex] = cellsCost[neighborIndex] + cellsBestCost[currentCellIndex];
-                        cellsToCheck.Enqueue(neighborIndex);
-                    }
-                }
-                //curNeighbors.Clear();
-            }
-
-            cellsBestCost.CopyTo(CellsBestCost);
-
-            cellsBestCost.Dispose();
-            cellsCost.Dispose();
-
-        }
-        
-        private int GetCellAtRelativePos(int2 orignPos, int2 relativePos, in GridSettings settings)
-        {
-            int2 finalPos = orignPos + relativePos;
- 
-            if (finalPos.x < 0 || finalPos.x >= settings.MapSize || finalPos.y < 0 || finalPos.y >= settings.MapSize)
-            {
-                return -1;
-            }
-            return mad(finalPos.y, settings.MapSize,finalPos.x) ;
-        }
-        
-        private List<int> GetNeighborCells(int index, GridSettings settings, List<GridDirection> directions)
-        {
-            List<int> curNeighbors = new List<int>();
-            int2 coord = index.GetXY2(settings.MapSize);
-            
-
-            foreach (GridDirection gd in directions)
-            {
-                int test = GetCellAtRelativePos(coord, gd, settings);
-                if (test != -1)
-                {
-                    curNeighbors.Add(test);
-                }
-            }
-            
-            /*
-            for (int i = 0; i < 4; i++)
-            {
-                int adjacentIndex = index.AdjCellFromIndex((1 << i), coord, settings.MapSize);
-                //Debug.Log($"{index}adj index {adjacentIndex}");
-                if (adjacentIndex == -1) continue;
-                //Debug.Log($"{index}adj index {adjacentIndex}");
-                curNeighbors.Add(adjacentIndex);
-            }
-*/
-            return curNeighbors;
+            tempBestCost.CopyTo(CellsBestCost);
         }
 
         //INIT CELLS POSITION IN GRID
-        public void GridCellPositions(GridSettings settings)
+        public void GridCellPositions(in GridSettings settings)
         {
             using NativeArray<float3> cellPos = AllocNtvAry<float3>(CellsCenterPosition.Length);
 
@@ -186,103 +85,67 @@ namespace KaizerWaldCode.Grid
         public void GetObstaclesGrid(GridSettings settings)
         {
             Vector3 cellHalfExtents = Vector3.one * (settings.PointSpacing/2f);
-            //float radius = settings.PointSpacing / 2f;
             for (int i = 0; i < CellsCenterPosition.Length; i++)
             {
-                //if (!Physics.CheckSphere(CellsCenterPosition[i], radius, ObstacleLayer)) continue;
-                if (!Physics.CheckBox(CellsCenterPosition[i], cellHalfExtents, Quaternion.identity, ObstacleLayer))
-                {
-                    CellsCost[i] = 1;
-                }
-                else
-                {
-                    CellsCost[i] = byte.MaxValue; 
-                }
+                CellsCost[i] = !CheckBox(CellsCenterPosition[i], cellHalfExtents, Quaternion.identity, ObstacleLayer) ? 
+                        1 : byte.MaxValue;
             }
         }
     }
 
-    public struct JCellCost : IJob
+    public struct JCellBestCost : IJob
     {
         [ReadOnly] public int DestinationCellIndex;
-        //[ReadOnly] public int2 DestinationCellCoord;
         [ReadOnly] public int PointPerAxis;
         
         public NativeArray<int> CellsCost;
         public NativeArray<int> CellsBestCost;
         
-        public NativeQueue<int> cellsToCheck;
+        //public NativeQueue<int> cellsToCheck;
         public void Execute()
         {
+            NativeQueue<int> cellsToCheck = new NativeQueue<int>(Allocator.Temp);
+            NativeList<int> currentNeighbors = new NativeList<int>(Allocator.Temp);
+            
             CellsCost[DestinationCellIndex] = 0;
             CellsBestCost[DestinationCellIndex] = 0;
             
-            //NativeQueue<int> cellsToCheck = new NativeQueue<int>(Allocator.Temp);
             cellsToCheck.Enqueue(DestinationCellIndex);
             
             while(cellsToCheck.Count > 0)
             {
                 int currentCellIndex = cellsToCheck.Dequeue();
-                NativeList<int> curNeighbors = GetNeighborCells(currentCellIndex);
+                currentNeighbors = GetNeighborCells(currentCellIndex, currentNeighbors);
 
-                for (int i = 0; i < curNeighbors.Length; i++)
+                foreach (int neighborIndex in currentNeighbors)
                 {
-                    int neighborIndex = curNeighbors[i];
-                    if (CellsCost[neighborIndex] >= 255) { continue; }
-                    Debug.Log($"Pass NOT max Value {neighborIndex}");
-                    Debug.Log($"Pass NOT max Value BEST COST? {CellsBestCost[neighborIndex]} {neighborIndex}");
-                    if (CellsCost[neighborIndex] + CellsCost[currentCellIndex] < CellsBestCost[neighborIndex])
+                    if (CellsCost[neighborIndex] >= byte.MaxValue) continue;
+                    if (CellsCost[neighborIndex] + CellsBestCost[currentCellIndex] < CellsBestCost[neighborIndex])
                     {
-                        Debug.Log($"Pass best cost OK BEST COST? {CellsBestCost[neighborIndex]}");
-                        Debug.Log($"Pass best cost OK {CellsCost[neighborIndex] + CellsCost[currentCellIndex]}");
                         CellsBestCost[neighborIndex] = CellsCost[neighborIndex] + CellsBestCost[currentCellIndex];
                         cellsToCheck.Enqueue(neighborIndex);
                     }
                 }
-                curNeighbors.Dispose();
+                currentNeighbors.Clear();
             }
+
+            currentNeighbors.Dispose();
+            cellsToCheck.Dispose();
         }
         
-        private NativeList<int> GetNeighborCells(int index)
+        private NativeList<int> GetNeighborCells(int index, NativeList<int> curNeighbors)
         {
-            NativeList<int> curNeighbors = new NativeList<int>(Allocator.Temp);
-
             int2 coord = index.GetXY2(PointPerAxis);
             for (int i = 0; i < 4; i++)
             {
-                int adjacentIndex = DestinationCellIndex.AdjCellFromIndex((1 << i), coord, PointPerAxis);
-                
-                if (adjacentIndex == -1) continue;
-                Debug.Log($"adj index {adjacentIndex}");
-                curNeighbors.Add(adjacentIndex);
+                int neighborId = index.AdjCellFromIndex((1 << i), coord, PointPerAxis);
+                if (neighborId == -1) continue;
+                curNeighbors.Add(neighborId);
             }
-
             return curNeighbors;
         }
     }
-
-
-    /// <summary>
-    /// Process Cell Index
-    /// </summary>
-    public struct JCellsCost : IJobFor
-    {
-        [ReadOnly] public int2 TargetGridPos;
-        [ReadOnly] public int NumCellMap;
-
-        [NativeDisableParallelForRestriction]
-        [WriteOnly] public NativeArray<int> CellCostGrid;
-        
-        public void Execute(int index)
-        {
-            (int x, int z) = index.GetXY(NumCellMap);
-
-            int varX = abs(x - TargetGridPos.x);
-            int varY = abs(z - TargetGridPos.y);
-
-            CellCostGrid[index] = varX + varY;
-        }
-    }
+    
     
     /// <summary>
     /// Get Cells Center
