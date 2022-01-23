@@ -10,6 +10,8 @@ namespace KaizerWaldCode.Grid
 {
     public class GridSettings : MonoBehaviour
     {
+        [SerializeField] private Transform Player;
+        
         [SerializeField] private bool displayGrid;
         
         [SerializeField] private MeshFilter terrain;
@@ -89,7 +91,7 @@ namespace KaizerWaldCode.Grid
             editorPointSpacing = PointSpacing;
             
             FlowField = new FlowField();
-            FlowField.InitGrid(float3(10f,0,10f), this);
+            FlowField.InitGrid(Player.position, this);
             //realCost = new int[FlowField.CellsCost.Length];
             //realCost = FlowField.CellsCost;
         }
@@ -129,10 +131,13 @@ namespace KaizerWaldCode.Grid
                         (drawCellRadius * 2 * y + drawCellRadius) + offset);*/
                     Vector3 center = FlowField.CellsCenterPosition[index];
                     Vector3 size = Vector3.one * drawCellRadius * 2;
-                    Gizmos.DrawWireCube(center, size);
+                    //Gizmos.DrawWireCube(center, size);
                     if (flowfield)
                     {
-                        Handles.Label(center, FlowField.CellsCost[index].ToString(), style);
+                        string text = FlowField.CellsBestCost[index] >= ushort.MaxValue
+                            ? "Max"
+                            : FlowField.CellsBestCost[index].ToString();
+                        Handles.Label(center, text, style);
                     }
                 }
             }

@@ -128,6 +128,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2461046690739676591, guid: 41d2d69ae71a8bb4b87990ecede34575, type: 3}
   m_PrefabInstance: {fileID: 2210630110220699883}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &71897820 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6106817352988900494, guid: 41d2d69ae71a8bb4b87990ecede34575, type: 3}
+  m_PrefabInstance: {fileID: 2210630110220699883}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &98574396
 GameObject:
   m_ObjectHideFlags: 0
@@ -2235,7 +2240,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-49674
+  m_Name: pb_Mesh30412
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -2519,13 +2524,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19546fcdbadb4e6daf6c0421923b0933, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Player: {fileID: 71897820}
   displayGrid: 0
   terrain: {fileID: 1057713386}
   useTerrainSize: 1
   chunkSize: 0
   numChunk: 0
   pointPerMeter: 2
-  realCost: 
   editorMapSize: 100
   editorPointSpacing: 1
 --- !u!4 &1052361564
@@ -3607,7 +3612,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6106817352988900494, guid: 41d2d69ae71a8bb4b87990ecede34575, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -30.2
       objectReference: {fileID: 0}
     - target: {fileID: 6106817352988900494, guid: 41d2d69ae71a8bb4b87990ecede34575, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3615,7 +3620,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6106817352988900494, guid: 41d2d69ae71a8bb4b87990ecede34575, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -18.4
       objectReference: {fileID: 0}
     - target: {fileID: 6106817352988900494, guid: 41d2d69ae71a8bb4b87990ecede34575, type: 3}
       propertyPath: m_LocalRotation.w
