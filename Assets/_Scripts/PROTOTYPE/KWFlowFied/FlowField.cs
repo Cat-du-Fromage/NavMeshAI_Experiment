@@ -20,22 +20,33 @@ namespace KaizerWaldCode.Grid
 {
     public class FlowField
     {
+        private int NumCells;
+        private GridSettings Settings;
+        
         //Center Cell
         public Vector3[] CellsCenterPosition;
         
         //Cost Value Cell
         public int[] CellsBestCost;
         public int[] CellsCost;
+        public int2[] BestDirection;
         
-        public int2 PositioninGrid;
+        public int2 PositionInGrid;
 
+        public FlowField(in GridSettings settings)
+        {
+            NumCells = sq(settings.MapSize);
+            Settings = settings;
+        }
 
         public void InitGrid(in float3 targetPosition, in GridSettings gc)
         {
             //Init Arrays
-            CellsCenterPosition = new Vector3[sq(gc.MapSize)];
-            CellsCost = new int[sq(gc.MapSize)];
-            CellsBestCost = new int[sq(gc.MapSize)];
+            int numCells = sq(gc.MapSize);
+            CellsCenterPosition = new Vector3[numCells];
+            CellsCost = new int[numCells];
+            CellsBestCost = new int[numCells];
+            BestDirection = new int2[numCells];
             Array.Fill(CellsBestCost, ushort.MaxValue);
             //INIT POSITIONS
             GridCellPositions(gc);
@@ -43,8 +54,49 @@ namespace KaizerWaldCode.Grid
             GetObstaclesGrid(gc);
             //Best Cost
             BestCostJob(targetPosition, gc);
+            //Actual FlowField!
+            CreateFlowField();
         }
+//======================================================================================================================
 
+        
+        public void CreateFlowField()
+        {
+            List<int> neighbors = new List<int>(8);
+
+            for (int i = 0; i < NumCells; i++)
+            {
+                GetNeighborCells(i, ref neighbors);
+                
+                int currentBestCost = CellsBestCost[i];
+                int2 currentCellCoord = i.GetXY2(Settings.MapSize);
+                
+                foreach(int currentNeighbor in neighbors)
+                {
+                    if(CellsBestCost[currentNeighbor] < currentBestCost)
+                    {
+                        currentBestCost = CellsBestCost[currentNeighbor];
+                        int2 neighborCoord = currentNeighbor.GetXY2(Settings.MapSize);
+                        BestDirection[i] = neighborCoord - currentCellCoord;
+                    }
+                }
+                neighbors.Clear();
+            }
+        }
+        
+        private void GetNeighborCells(int index, ref List<int> neighbors)
+        {
+            int2 coord = index.GetXY2(Settings.MapSize);
+            for (int i = 0; i < 8; i++)
+            {
+                int neighborId = index.AdjCellFromIndex((1 << i), coord, Settings.MapSize);
+                if (neighborId == -1) continue;
+                //Debug.Log($"nei index({index}) : {neighborId} at {i}");
+                neighbors.Add(neighborId);
+            }
+        }
+        
+//======================================================================================================================
         public void BestCostJob(in float3 targetPosition, in GridSettings gc)
         {
             int destinationIndex = targetPosition.GetIndexFromPosition(gc.MapSize, gc.PointSpacing);
@@ -115,7 +167,7 @@ namespace KaizerWaldCode.Grid
             while(cellsToCheck.Count > 0)
             {
                 int currentCellIndex = cellsToCheck.Dequeue();
-                currentNeighbors = GetNeighborCells(currentCellIndex, currentNeighbors);
+                GetNeighborCells(currentCellIndex, ref currentNeighbors);
 
                 foreach (int neighborIndex in currentNeighbors)
                 {
@@ -133,7 +185,7 @@ namespace KaizerWaldCode.Grid
             cellsToCheck.Dispose();
         }
         
-        private NativeList<int> GetNeighborCells(int index, NativeList<int> curNeighbors)
+        private void GetNeighborCells(int index, ref NativeList<int> curNeighbors)
         {
             int2 coord = index.GetXY2(PointPerAxis);
             for (int i = 0; i < 4; i++)
@@ -142,7 +194,7 @@ namespace KaizerWaldCode.Grid
                 if (neighborId == -1) continue;
                 curNeighbors.Add(neighborId);
             }
-            return curNeighbors;
+            //return curNeighbors;
         }
     }
     

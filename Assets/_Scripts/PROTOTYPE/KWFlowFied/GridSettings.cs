@@ -8,8 +8,11 @@ using static KWUtils.KWmath;
 
 namespace KaizerWaldCode.Grid
 {
+    public enum FlowFieldDisplayType { None, AllIcons, DestinationIcon, CostField, IntegrationField };
     public class GridSettings : MonoBehaviour
     {
+        public FlowFieldDisplayType curDisplayType;
+        
         [SerializeField] private Transform Player;
         
         [SerializeField] private bool displayGrid;
@@ -91,7 +94,7 @@ namespace KaizerWaldCode.Grid
             editorMapSize = MapSize;
             editorPointSpacing = PointSpacing;
             
-            FlowField = new FlowField();
+            FlowField = new FlowField(this);
             FlowField.InitGrid(Player.position, this);
             //realCost = new int[FlowField.CellsCost.Length];
             //realCost = FlowField.CellsCost;
@@ -116,7 +119,7 @@ namespace KaizerWaldCode.Grid
             }
         }
 
-        private void DrawGrid(int2 drawGridSize, Color drawColor, float drawCellRadius, bool flowfield, GUIStyle style)
+        private void DrawGrid(int2 drawGridSize, Color drawColor, float drawCellRadius, bool flowField, GUIStyle style)
         {
             Gizmos.color = drawColor;
             for (int y = 0; y < drawGridSize.y; y++)
@@ -124,28 +127,37 @@ namespace KaizerWaldCode.Grid
                 for (int x = 0; x < drawGridSize.x; x++)
                 {
                     int index = (y * drawGridSize.y) + x;
-                    //float offset = 0 - MapSize / 2;
-                    /*
-                    Vector3 center = new Vector3(
-                        (drawCellRadius * 2 * x + drawCellRadius) + offset,
-                        0,
-                        (drawCellRadius * 2 * y + drawCellRadius) + offset);*/
-                    Vector3 center = FlowField.CellsCenterPosition[index];
+                    Vector3 center = FlowField.CellsCenterPosition[index]-(Vector3.up * 0.5f);
                     Vector3 size = Vector3.one * drawCellRadius * 2;
                     //Gizmos.DrawWireCube(center, size);
                     //Gizmos.color = Color.red;
                     //Gizmos.DrawWireSphere(FlowField.CellsCenterPosition[index]-(Vector3.up/2f), 0.1f);
-                    if (flowfield)
+                    if (flowField)
                     {
-                        string text = FlowField.CellsBestCost[index] >= ushort.MaxValue
-                            ? MaxDebug
-                            : FlowField.CellsBestCost[index].ToString();
-                        if (FlowField.CellsBestCost[index] >= ushort.MaxValue) continue;
-                        Handles.Label(center, text, style);
-                        
-                        
+                        switch (curDisplayType)
+                        {
+                            case FlowFieldDisplayType.CostField:
+                                Handles.Label(center, FlowField.CellsCost[index].ToString(), style);
+                                break;
+
+                            case FlowFieldDisplayType.IntegrationField:
+                                string text = FlowField.CellsBestCost[index] >= ushort.MaxValue
+                                    ? MaxDebug
+                                    : FlowField.CellsBestCost[index].ToString();
+                                if (FlowField.CellsBestCost[index] >= ushort.MaxValue) continue;
+                                Handles.Label(center, text, style);
+                                break;
+                            
+                            case FlowFieldDisplayType.AllIcons :
+                                int2 coord = FlowField.BestDirection[index];
+                                Vector3 dir = new Vector3(coord.x,0,coord.y);
+                                DrawArrow.ForGizmo(center, dir);
+                                break;
+
+                            default:
+                                break;
+                        }
                     }
-                    
                 }
             }
         }
