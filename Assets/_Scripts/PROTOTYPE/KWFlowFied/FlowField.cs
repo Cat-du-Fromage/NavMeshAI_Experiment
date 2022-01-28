@@ -21,14 +21,20 @@ namespace KaizerWaldCode.Grid
     public class FlowField
     {
         private int NumCells;
-        private GridSettings Settings;
+        public GridSettings Settings;
         
+        //STORE ONLY FOR DEBUG PURPOSE!
+        //DONT STORE FOR RELEASE!
+        //=============================================
         //Center Cell
         public Vector3[] CellsCenterPosition;
         
         //Cost Value Cell
         public int[] CellsBestCost;
         public int[] CellsCost;
+        //=============================================
+        
+        //ONLY THIS ONE IS NEEDED IN THE FINAL RESULT!
         public int2[] BestDirection;
         
         public int2 PositionInGrid;
@@ -39,7 +45,7 @@ namespace KaizerWaldCode.Grid
             Settings = settings;
         }
 
-        public void InitGrid(in float3 targetPosition, in GridSettings gc)
+        public int2[] InitGrid(in float3 targetPosition, in GridSettings gc)
         {
             //Init Arrays
             int numCells = sq(gc.MapSize);
@@ -56,6 +62,7 @@ namespace KaizerWaldCode.Grid
             BestCostJob(targetPosition, gc);
             //Actual FlowField!
             CreateFlowField();
+            return BestDirection;
         }
 //======================================================================================================================
 
@@ -220,43 +227,3 @@ namespace KaizerWaldCode.Grid
         }
     }
 }
-
-
-
-
-
-/*
-
-
-    /// <summary>
-    /// Process Cell Index
-    /// </summary>
-    public struct JCellsIndex : IJobFor
-    {
-        [ReadOnly] public int NumCellMap;
-        [ReadOnly] public int CellSize;
-        [ReadOnly] public NativeArray<float3> Vertices;
-
-        [NativeDisableParallelForRestriction]
-        [WriteOnly] public NativeArray<int> VerticesCellGrid;
-        
-        public void Execute(int index)
-        {
-            float2 cellGrid = float2(NumCellMap);
-            float2 currVertPos = Vertices[index].xz;
-
-            FindCell(ref cellGrid, in currVertPos);
-            VerticesCellGrid[index] = (int)mad(cellGrid.y, NumCellMap, cellGrid.x);
-        }
-
-        private void FindCell(ref float2 cellGrid, in float2 vertPos)
-        {
-            for (int i = 0; i < NumCellMap; i++)
-            {
-                if ((int)cellGrid.y == NumCellMap) cellGrid.y = select(NumCellMap, i, vertPos.y <= mad(i, CellSize, CellSize));
-                if ((int)cellGrid.x == NumCellMap) cellGrid.x = select(NumCellMap, i, vertPos.x <= mad(i, CellSize, CellSize));
-                if ((int)cellGrid.x != NumCellMap && (int)cellGrid.y != NumCellMap) break;
-            }
-        }
-    }
-*/

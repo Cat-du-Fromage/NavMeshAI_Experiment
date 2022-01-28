@@ -19,7 +19,7 @@ namespace KWUtils
         /// <param name="mapSize">Size of the grid to divide</param>
         /// <param name="numCellPerAxis">desired number of cell per axis</param>
         /// <returns></returns>
-        public static float GetCellSize(in int mapSize, in int numCellPerAxis) => (float)mapSize / numCellPerAxis;
+        public static float GetCellSize(int mapSize, int numCellPerAxis) => (float)mapSize / numCellPerAxis;
 
         
         /// <summary>
@@ -29,20 +29,20 @@ namespace KWUtils
         /// <param name="numCellPerAxis"></param>
         /// <param name="dependency"></param>
         /// <returns></returns>
-        public static NativeArray<Bounds> GetCellsBounds(in int mapSize, in int numCellPerAxis, in JobHandle dependency = default)
+        public static NativeArray<Bounds> GetCellsBounds(int mapSize, int numCellPerAxis, in JobHandle dependency = default)
         {
             float cellSize = GetCellSize(mapSize, numCellPerAxis);
             int totalCells = numCellPerAxis * numCellPerAxis;
             
             NativeArray<Bounds> bounds = AllocNtvAry<Bounds>(totalCells);
 
-            CellBound(in mapSize, in numCellPerAxis, ref bounds).Complete();
+            CellBound(mapSize, numCellPerAxis, ref bounds).Complete();
             //Bounds[] boundsArray = bounds.ToArray();
 
             return bounds;
         }
 
-        public static int[] GetObjectInCells(in int mapSize, in int numCellPerAxis, NativeArray<float3> positions, in JobHandle dependency = default)
+        public static int[] GetObjectInCells(int mapSize, int numCellPerAxis, NativeArray<float3> positions, in JobHandle dependency = default)
         {
             float cellSize = GetCellSize(mapSize, numCellPerAxis);
             int totalCells = numCellPerAxis * numCellPerAxis;
@@ -61,7 +61,7 @@ namespace KWUtils
         //JOB SYSTEM
         //==============================================================================================================
 
-        private static JobHandle CellBound(in int mapSize, in int numCellPerAxis, ref NativeArray<Bounds> bounds, in JobHandle dependency = default)
+        private static JobHandle CellBound(int mapSize, int numCellPerAxis, ref NativeArray<Bounds> bounds, in JobHandle dependency = default)
         {
             int totalCells = numCellPerAxis * numCellPerAxis;
             CellBounds2DJob job = new CellBounds2DJob(numCellPerAxis, GetCellSize(mapSize,numCellPerAxis), bounds);
@@ -75,7 +75,7 @@ namespace KWUtils
                                                  ref NativeArray<int> objectIds,
                                                  in JobHandle dependency = default)
         {
-            JobHandle cellJobHandle = CellBound(in mapSize, in numCellPerAxis, ref bounds);
+            JobHandle cellJobHandle = CellBound(mapSize, numCellPerAxis, ref bounds);
             ObjectIdInCellsJob objectIdJob = new ObjectIdInCellsJob(bounds, positions, objectIds);
             return objectIdJob.ScheduleParallel(positions.Length, JobsUtility.JobWorkerCount - 1, cellJobHandle);
         }

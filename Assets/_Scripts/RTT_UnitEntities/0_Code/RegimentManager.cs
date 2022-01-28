@@ -20,10 +20,12 @@ namespace KaizerWaldCode.RTTUnits
 
         //ALL REGIMENTS
         private List<Regiment> Regiments;
-        public ref readonly List<Regiment> GetRegiments => ref Regiments;
+        public List<Regiment> GetRegiments => Regiments;
         
         //SELECTED REGIMENT
         public HashSet<Regiment> SelectedRegiments { get; private set; }
+        
+        //MovingRegiment?
         
         //UNITS
         public int GetTotalUnits => Regiments.Sum(regiment => regiment.Units.Count);
@@ -43,7 +45,7 @@ namespace KaizerWaldCode.RTTUnits
         {
             for (int i = 0; i < numRegiment; i++)
             {
-                Vector3 position = Vector3.zero + (i + 1) * 10 * Vector3.forward;
+                Vector3 position = Vector3.zero + Vector3.forward * ((i + 1) * 10);
                 Regiments.Add(Instantiate(regimentPrefabs[regimentIndex], position, Quaternion.identity)
                     .GetComponent<Regiment>());
             }

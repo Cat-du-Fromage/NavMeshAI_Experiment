@@ -1,9 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.ProBuilder;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.ProBuilder.Shapes;
 using UnityEngine.Rendering;
+
+using static Unity.Mathematics.math;
 
 namespace KWUtils
 {
@@ -64,7 +69,7 @@ namespace KWUtils
            
            mesh.SetVertexBufferData(verticesPos, 0, 0, numVertices, 0, MeshUpdateFlags.DontRecalculateBounds);
        }
-       
+
     }
     
     

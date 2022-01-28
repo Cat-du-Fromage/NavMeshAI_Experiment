@@ -153,6 +153,21 @@ namespace KWUtils
             //Debug.Log($"valX {x} valY {y}");
             return mad(y, gridSize, x);
         }
+        
+        public static int GetIndexFromPosition(this Vector3 pointPos, int gridSize, float spacing)
+        {
+            float mapOffset = gridSize * 0.5f;
+            
+            float percentX = (pointPos.x + mapOffset) / (gridSize * spacing);
+            float percentY = (pointPos.z + mapOffset) / (gridSize * spacing);
+            
+            percentX = Mathf.Clamp01(percentX); //CAREFUL NEED ABS!
+            percentY = Mathf.Clamp01(percentY); //CAREFUL NEED ABS!
+ 
+            int x = Mathf.Clamp(Mathf.FloorToInt(gridSize * percentX), 0, gridSize - 1);
+            int y = Mathf.Clamp(Mathf.FloorToInt(gridSize * percentY), 0, gridSize - 1);
+            return (y * gridSize) + x;
+        }
 
         /// <summary>
         /// Find the index of the cells a point belongs to

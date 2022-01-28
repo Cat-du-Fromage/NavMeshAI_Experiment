@@ -8,6 +8,7 @@ using Unity.Mathematics;
 using UnityEngine.InputSystem;
 
 using KaizerWaldCode.Globals;
+using KaizerWaldCode.Grid;
 using static UnityEngine.Physics;
 using static Unity.Mathematics.math;
 
@@ -16,11 +17,14 @@ using static KWUtils.KWmath;
 using static KWUtils.KWmesh;
 using static KWUtils.KWRect;
 using static KaizerWaldCode.PlayerEntityInteractions.RTTSelection.SelectionMeshUtils;
-
+using FlowField = KaizerWaldCode.Grid.FlowField;
 namespace KaizerWaldCode
 {
     public class SteeringSystem : KWUtils.Singleton<SteeringSystem>
     {
+        [SerializeField] private MoveUpdateManager updateManager;
+        [SerializeField] private GridSettings gridSettings;
+        
         [SerializeField] private GameObject leaderPrefab;
         
         [SerializeField] private GameObject prefabTargetStart;
@@ -32,7 +36,9 @@ namespace KaizerWaldCode
         public Vector3 startMouse; //Will corespond to : regiment's middle current row formation
         public Vector3 EndMouse; //Will corespond to : regiment's middle current row formation destiunations
 
-        private FlowField flowField;
+        private Grid.FlowField flowField;
+
+        private Dictionary<GameObject, Grid.FlowField> LeaderFlowField = new Dictionary<GameObject, Grid.FlowField>();
 
         protected override void Awake()
         {
@@ -41,6 +47,14 @@ namespace KaizerWaldCode
             prefabTargetEnd.SetActive(false);
             startMouse = leaderPrefab.transform.position;
             regimentManager = FindObjectOfType<RegimentManager>();
+            gridSettings ??= FindObjectOfType<GridSettings>();
+            updateManager ??= FindObjectOfType<MoveUpdateManager>();
+        }
+
+        public void Start()
+        {
+            flowField = new Grid.FlowField(gridSettings);
+            gridSettings.FlowField = flowField;
         }
 
         private void Update()
@@ -48,6 +62,9 @@ namespace KaizerWaldCode
             if (Mouse.current.press.wasPressedThisFrame)
             {
                 SimulateSetNewDestination();
+                flowField.InitGrid(prefabTargetEnd.transform.position, gridSettings);
+                gridSettings.FlowField = flowField;
+                updateManager.AddObjectToMove(leaderPrefab, flowField);
             }
         }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace KaizerWaldCode
 {
-    public class SteeringBehaviour : MonoBehaviour
+    public class EntityMovementSystem : MonoBehaviour
     {
         // Start is called before the first frame update
         void Start()

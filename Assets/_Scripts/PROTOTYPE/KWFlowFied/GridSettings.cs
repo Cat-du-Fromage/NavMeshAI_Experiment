@@ -1,9 +1,13 @@
 using System;
 using System.Collections;
+using KWUtils;
 using UnityEngine;
 using Unity.Mathematics;
 using UnityEditor;
+using UnityEngine.ProBuilder;
+using UnityEngine.ProBuilder.Shapes;
 using static Unity.Mathematics.math;
+using static KWUtils.KWmesh;
 using static KWUtils.KWmath;
 
 namespace KaizerWaldCode.Grid
@@ -28,13 +32,15 @@ namespace KaizerWaldCode.Grid
         [SerializeField] private int pointPerMeter;
         
         public bool UseTerrainSize { get; private set; }
+        //==================================================
+        //GRID DATA
         public int ChunkSize { get; private set; }
         public int NumChunk { get; private set; }
         public int PointPerMeter { get; private set; }
         public int MapSize { get; private set; }
-        public float PointSpacing { get; private set; }
-
-        private FlowField FlowField;
+        public float PointSpacing { get; private set; } //try instead : float CellSize =>
+        //==================================================
+        public FlowField FlowField;
 
         //public int[] realCost;
         
@@ -79,7 +85,7 @@ namespace KaizerWaldCode.Grid
             ChunkSize = max(1, chunkSize);
             NumChunk = max(1, numChunk);
             PointPerMeter = clamp(PointPerMeter,2, 10);
-            
+
             if (UseTerrainSize)
             {
                 MapSize = (int)(terrain.sharedMesh.bounds.size.x * terrain.transform.localScale.x);
@@ -94,12 +100,12 @@ namespace KaizerWaldCode.Grid
             editorMapSize = MapSize;
             editorPointSpacing = PointSpacing;
             
-            FlowField = new FlowField(this);
-            FlowField.InitGrid(Player.position, this);
+            //FlowField = new FlowField(this);
+            //FlowField.InitGrid(Player.position, this);
             //realCost = new int[FlowField.CellsCost.Length];
             //realCost = FlowField.CellsCost;
         }
-
+#if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             if (displayGrid)
@@ -127,8 +133,8 @@ namespace KaizerWaldCode.Grid
                 for (int x = 0; x < drawGridSize.x; x++)
                 {
                     int index = (y * drawGridSize.y) + x;
-                    Vector3 center = FlowField.CellsCenterPosition[index]-(Vector3.up * 0.5f);
-                    Vector3 size = Vector3.one * drawCellRadius * 2;
+                    Vector3 center = FlowField.CellsCenterPosition[index];
+                    //Vector3 size = Vector3.one * drawCellRadius * 2;
                     //Gizmos.DrawWireCube(center, size);
                     //Gizmos.color = Color.red;
                     //Gizmos.DrawWireSphere(FlowField.CellsCenterPosition[index]-(Vector3.up/2f), 0.1f);
@@ -137,10 +143,12 @@ namespace KaizerWaldCode.Grid
                         switch (curDisplayType)
                         {
                             case FlowFieldDisplayType.CostField:
+                                center += (Vector3.up * 0.5f);
                                 Handles.Label(center, FlowField.CellsCost[index].ToString(), style);
                                 break;
 
                             case FlowFieldDisplayType.IntegrationField:
+                                center += (Vector3.up * 0.5f);
                                 string text = FlowField.CellsBestCost[index] >= ushort.MaxValue
                                     ? MaxDebug
                                     : FlowField.CellsBestCost[index].ToString();
@@ -149,9 +157,10 @@ namespace KaizerWaldCode.Grid
                                 break;
                             
                             case FlowFieldDisplayType.AllIcons :
+                                center -= (Vector3.up * 0.5f);
                                 int2 coord = FlowField.BestDirection[index];
                                 Vector3 dir = new Vector3(coord.x,0,coord.y);
-                                DrawArrow.ForGizmo(center, dir);
+                                KWUtils.Debug.DrawArrow.ForGizmo(center, dir/2f);
                                 break;
 
                             default:
@@ -161,5 +170,6 @@ namespace KaizerWaldCode.Grid
                 }
             }
         }
+#endif
     }
 }
