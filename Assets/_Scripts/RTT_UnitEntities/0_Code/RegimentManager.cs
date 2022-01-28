@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using KaizerWaldCode.PlayerEntityInteractions;
+using KWUtils;
 using UnityEngine;
 
 using static Unity.Mathematics.math;
@@ -11,6 +12,7 @@ namespace KaizerWaldCode.RTTUnits
     public class RegimentManager : MonoBehaviour, IEntityGroup<Regiment>
     {
         public IMediator<Regiment> Mediator { get; set; }
+        public EntitySystem EntitySystem { get; set; }
         
         [SerializeField] private int numRegiment, regimentIndex;
         [SerializeField] private GameObject[] regimentPrefabs;
@@ -79,6 +81,12 @@ namespace KaizerWaldCode.RTTUnits
             {
                 regiment.SetNewDestination(unitsDestinations);
             }
+
+            
+            //ENTITY SYSTEM
+            //Regiment[] regimentsToMove = new Regiment[keys.Keys.Count];
+            //keys.Keys.CopyTo(regimentsToMove,0);
+            EntitySystem.OnDestinationsSet(keys.GetKeysArray());
 
             foreach (Regiment regiment in SelectedRegiments)
             {

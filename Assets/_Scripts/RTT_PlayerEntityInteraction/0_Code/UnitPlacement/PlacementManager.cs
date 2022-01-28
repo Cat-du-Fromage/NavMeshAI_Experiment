@@ -26,14 +26,11 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
     {
         [SerializeField] private PlacementTokensPool token;
         public IMediator<Regiment> Mediator { get; set; }
-
         
         //====================================================
         private readonly SelectionData Selection = new SelectionData();
         private readonly List<Renderer> NextDestinationsRenderer = new List<Renderer>();
         private Dictionary<Regiment, Transform[]> NextDestinations = new Dictionary<Regiment, Transform[]>();
-        
-
         //====================================================
         
         private Camera PlayerCamera;
@@ -50,7 +47,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private Vector3 StartGroundHit;
         private Vector3 EndGroundHit;
 
-        private float LengthMouseDrag;
+        private float LengthMouseDrag => (EndGroundHit - StartGroundHit).magnitude;
         
         //JOB SYSTEM
         private TransformAccessArray TransformAccesses;
@@ -67,7 +64,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         public void UpdateSelectionData(in Regiment regiment)
         {
-            if (Selection.GetSelections.Contains(regiment)) return;
+            if (Selection.Regiments.Contains(regiment)) return;
             Selection.OnAddRegiment(regiment);
             Transform[] tokens = new Transform[regiment.Units.Count];
             
@@ -82,10 +79,15 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         public void ClearSelectionData()
         {
+            ClearDestinationTokens();
+            Selection.OnClearRegiment();
+        }
+
+        public void ClearDestinationTokens()
+        {
             NextDestinationsRenderer.Clear();
             token.ReleaseAll(ref NextDestinations);
             NextDestinations.Clear();
-            Selection.OnClearRegiment();
         }
 
         private void Awake()
@@ -118,8 +120,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             if (TokensVisible)
             {
                 Mediator.NotifyDestinationSet(this, NextDestinations);
-                TokensVisible = false;
-                DisplayNextDestination(false);
+                SetTokenVisible(false);
             }
         }
         
@@ -133,54 +134,55 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             if (HitGround(EndRay))
             {
                 EndGroundHit = Hit.point;
-                LengthMouseDrag  = length(EndGroundHit - StartGroundHit);
-                
                 if (LengthMouseDrag >= Selection.MinRowLength - 1) // NEED UNIT (SIZE + Offset) * (MinRow-1)!
                 {
                     //SET Marker Visible!
                     if (!TokensVisible)
                     {
-                        TokensVisible = true;
-                        DisplayNextDestination(true);
+                        SetTokenVisible(true);
                     }
-                    
-                    JobHandles = new NativeList<JobHandle>(Selection.NumSelection, Allocator.TempJob);
-                    
-                    int currentIteration = 0;
-                    foreach((Regiment regiment, Transform[] value) in NextDestinations)
-                    {
-                        //Regiment regiment = Selection.GetSelections[currentIteration];
-                        using (TransformAccesses = new TransformAccessArray(value))
-                        {
-                            JUnitsTokenPlacement job = new JUnitsTokenPlacement
-                            {
-                                StartSelectionChangeLength = Selection.StartDragPlaceLength,
-                                RegimentIndex = currentIteration, //Change this, this is not the index of the regiment! but index in the loop
-                                NumRegimentSelected = Selection.NumSelection,
-                                MinRowLength = regiment.GetRegimentType.minRow,
-                                MaxRowLength = regiment.GetRegimentType.maxRow,
-                                NumUnits = regiment.CurrentSize,
-                                FullUnitSize = regiment.GetUnitType.unitWidth + regiment.GetRegimentType.offsetInRow,
-                                StartPosition = StartGroundHit,
-                                EndPosition = EndGroundHit
-                            };
-                            JobHandles.AddNoResize(job.Schedule(TransformAccesses));
-                        }
-                        currentIteration++;
-                    }
-                    JobHandles.Dispose(JobHandles[^1]);
+                    PlaceDestinationTokens();
                 }
-                else
+                else if(TokensVisible)
                 {
-                    if (TokensVisible)
-                    {
-                        TokensVisible = false;
-                        DisplayNextDestination(false);
-                    }
+                    SetTokenVisible(false);
                 }
             }
         }
-        
+
+        private void SetTokenVisible(bool enable)
+        {
+            TokensVisible = enable;
+            DisplayNextDestination(enable);
+        }
+
+        private void PlaceDestinationTokens()
+        {
+            JobHandles = new NativeList<JobHandle>(Selection.NumSelection, Allocator.TempJob);
+            int currentIteration = 0;
+            foreach((Regiment regiment, Transform[] value) in NextDestinations)
+            {
+                //Regiment regiment = Selection.GetSelections[currentIteration];
+                using (TransformAccesses = new TransformAccessArray(value))
+                {
+                    JUnitsTokenPlacement job = new JUnitsTokenPlacement
+                    {
+                        StartSelectionChangeLength = Selection.StartDragPlaceLength,
+                        RegimentIndex = currentIteration, //Change this, this is not the index of the regiment! but index in the loop
+                        NumRegimentSelected = Selection.NumSelection,
+                        MinRowLength = regiment.GetRegimentType.minRow,
+                        MaxRowLength = regiment.GetRegimentType.maxRow,
+                        NumUnits = regiment.CurrentSize,
+                        FullUnitSize = regiment.GetUnitType.unitWidth + regiment.GetRegimentType.offsetInRow,
+                        StartPosition = StartGroundHit,
+                        EndPosition = EndGroundHit
+                    };
+                    JobHandles.AddNoResize(job.Schedule(TransformAccesses));
+                }
+                currentIteration++;
+            }
+            JobHandles.Dispose(JobHandles[^1]);
+        }
 
         
         
@@ -236,7 +238,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 transform.rotation = quaternion.LookRotation(-crossDirection, up());
             }
 
-            private float3 GetRowStart(int z,int numRows,int unitPerRow, in float3 direction, in float3 crossDirection)
+            private float3 GetRowStart(int z, int numRows, int unitPerRow, in float3 direction, in float3 crossDirection)
             {
                 float3 rowStart = StartPosition + crossDirection * (FullUnitSize * z);
                 

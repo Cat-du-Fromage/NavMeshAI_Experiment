@@ -12,6 +12,21 @@ namespace KWUtils
 {
     public static class KwManagedContainerUtils
     {
+        //DICTIONNARY
+        public static T[] GetKeysArray<T, U>(this Dictionary<T, U> dictionary)
+        {
+            T[] array = new T[dictionary.Keys.Count];
+            dictionary.Keys.CopyTo(array,0);
+            return array;
+        }
+        
+        public static U[] GetValuesArray<T, U>(this Dictionary<T, U> dictionary)
+        {
+            U[] array = new U[dictionary.Values.Count];
+            dictionary.Values.CopyTo(array,0);
+            return array;
+        }
+        
         //GENERIC ARRAY
         public static T[] Concat<T>(this T[] x, T[] y)
         {
