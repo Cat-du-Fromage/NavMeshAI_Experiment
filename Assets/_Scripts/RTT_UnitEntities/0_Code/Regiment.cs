@@ -24,6 +24,8 @@ namespace KaizerWaldCode.RTTUnits
         [SerializeField] private UnitType unitType; //Immutable DATA
         
         private Transform regimentTransform;
+
+        public Leader Leader { get; private set; }
         public List<Unit> Units { get; private set; }
         public List<Transform> DestinationTokens { get; private set; }
         
@@ -32,7 +34,9 @@ namespace KaizerWaldCode.RTTUnits
         public int CurrentSize => Units.Count;
         
         //TEST FEATURE
-        private bool UnitMustMove = false;
+        public int PreviousRowFormation = 0;
+        public int CurrentRowFormation = 0;
+        //private bool UnitMustMove = false;
 
         //Unity Event
         //==============================================================================================================
@@ -52,7 +56,24 @@ namespace KaizerWaldCode.RTTUnits
         //Methods
         //==============================================================================================================
 
-        Vector3 GetUnitPosition(in Vector3 startPos, int index)
+        public int GetCurrentRowFormation()
+        {
+            int numRow = 0;
+            Vector3 normalDirection = (DestinationTokens[1].position - DestinationTokens[0].position).normalized;
+            for (int i = 1; i < DestinationTokens.Count; i++)
+            {
+                if ( (DestinationTokens[i + 1].position - DestinationTokens[i].position).normalized != normalDirection )
+                {
+                    numRow = i; 
+                    break;
+                }
+            }
+            return numRow + 1; //+1 because [0] is not included
+        }
+
+        public void SetLeader(Leader leader) => Leader = leader;
+
+        private Vector3 GetUnitPosition(in Vector3 startPos, int index)
         {
             (int x, int y) = index.GetXY(regimentType.maxRow/2);
             Vector3 newPos = startPos;
@@ -101,12 +122,15 @@ namespace KaizerWaldCode.RTTUnits
 
         public void SetNewDestination(in Transform[] newDestination)
         {
+            PreviousRowFormation = GetCurrentRowFormation();
             for (int i = 0; i < DestinationTokens.Count; i++)
             {
                 DestinationTokens[i].position = newDestination[i].position;
                 //CAREFUL NEED TO SET TO FALSE WHEN ARRIVED!
                 DestinationTokens[i].GetComponent<PositionTokenComponent>().SetDestination(true);
             }
+            CurrentRowFormation = GetCurrentRowFormation();
+            Debug.Log($"current numRow = {CurrentRowFormation}");
         }
 
         /// <summary>
@@ -115,7 +139,6 @@ namespace KaizerWaldCode.RTTUnits
         /// <param name="enable"></param>
         public void DisplayDestination(bool enable)
         {
-            Debug.Log($"Display {enable}");
             for (int i = 0; i < DestinationTokens.Count; i++)
             {
                 DestinationTokens[i].gameObject.SetActive(enable);

@@ -47,6 +47,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions
             foreach ((Regiment regiment, Transform[] unitsDestinations) in nextDestinations)
             {
                 regiment.SetNewDestination(unitsDestinations);
+                regimentsRegister.AddMovingRegiments(regiment);
             }
         }
 

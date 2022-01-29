@@ -3213,8 +3213,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1241941845}
-  - component: {fileID: 1241941846}
   - component: {fileID: 1241941847}
+  - component: {fileID: 1241941846}
+  - component: {fileID: 1241941848}
   m_Layer: 0
   m_Name: EntitySystem
   m_TagString: Untagged
@@ -3250,6 +3251,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   regimentsRegister: {fileID: 522375946}
+  leaderSubSystem: {fileID: 1241941848}
 --- !u!114 &1241941847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3266,6 +3268,19 @@ MonoBehaviour:
   regimentIndex: 0
   regimentPrefabs:
   - {fileID: 5075743312797074582, guid: 23314dd7da733c24aa6bb59cd55ac0d3, type: 3}
+  regimentLeader: {fileID: 6972139853734974070, guid: 974064aaf3aaed24eac22d5608a33300, type: 3}
+--- !u!114 &1241941848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1241941844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29309354d2a04b98a7dd351049dbe457, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1662382034
 GameObject:
   m_ObjectHideFlags: 0

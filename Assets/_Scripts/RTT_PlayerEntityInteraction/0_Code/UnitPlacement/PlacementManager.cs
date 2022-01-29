@@ -167,7 +167,6 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
             int currentIteration = 0;
             foreach((Regiment regiment, Transform[] value) in NextDestinations)
             {
-                //Regiment regiment = Selection.GetSelections[currentIteration];
                 using (TransformAccesses = new TransformAccessArray(value))
                 {
                     JUnitsTokenPlacement job = new JUnitsTokenPlacement

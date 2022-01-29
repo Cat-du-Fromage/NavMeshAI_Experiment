@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace KaizerWaldCode.RTTUnits
 {
+    //MAY WANT TO MOVE THIS INTO A SUBSYSTEM (of entitySystem)
+    //but have to resolve the problem of access to selectionList
     public class VisualIndicatorEvent
     {
         //SELECTION
@@ -71,6 +73,7 @@ namespace KaizerWaldCode.RTTUnits
 
         public void AddMovingRegiments(Regiment regiment)
         {
+            MovingRegiments.Add(regiment);
             OnMovingRegimentsChanged?.Invoke(regiment);
         }
 
