@@ -25,11 +25,10 @@ namespace KaizerWaldCode.RTTUnits
         
         private Transform regimentTransform;
         public List<Unit> Units { get; private set; }
-
         public List<Transform> DestinationTokens { get; private set; }
         
-        public ref readonly RegimentType GetRegimentType => ref regimentType;
-        public ref readonly UnitType GetUnitType => ref unitType;
+        public RegimentType GetRegimentType => regimentType;
+        public UnitType GetUnitType => unitType;
         public int CurrentSize => Units.Count;
         
         //TEST FEATURE
@@ -105,6 +104,8 @@ namespace KaizerWaldCode.RTTUnits
             for (int i = 0; i < DestinationTokens.Count; i++)
             {
                 DestinationTokens[i].position = newDestination[i].position;
+                //CAREFUL NEED TO SET TO FALSE WHEN ARRIVED!
+                DestinationTokens[i].GetComponent<PositionTokenComponent>().SetDestination(true);
             }
         }
 
@@ -114,9 +115,10 @@ namespace KaizerWaldCode.RTTUnits
         /// <param name="enable"></param>
         public void DisplayDestination(bool enable)
         {
+            Debug.Log($"Display {enable}");
             for (int i = 0; i < DestinationTokens.Count; i++)
             {
-                DestinationTokens[i].gameObject.SetActive(enable);;
+                DestinationTokens[i].gameObject.SetActive(enable);
             }
         }
 

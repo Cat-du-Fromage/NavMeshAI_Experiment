@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using KaizerWaldCode.Globals;
 using KaizerWaldCode.RTTUnits;
-using KaizerWaldCode.Utils;
 using KWUtils;
 //using Unity.Burst;
 using Unity.Collections;
@@ -25,7 +24,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
     public class PlacementManager : MonoBehaviour, IPlacement<Regiment>
     {
         [SerializeField] private PlacementTokensPool token;
-        public IMediator<Regiment> Mediator { get; set; }
+        public IMainSystem<Regiment> MainSystem { get; set; }
         
         //====================================================
         private readonly SelectionData Selection = new SelectionData();
@@ -59,8 +58,6 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         private Ray StartRay => PlayerCamera.ScreenPointToRay(MouseStartPosition);
         private Ray EndRay => PlayerCamera.ScreenPointToRay(MouseEndPosition);
         private bool HitGround(Ray ray) => Raycast(ray, out Hit, INFINITY, StaticDatas.TerrainLayer);
-        
-        private void DisplayNextDestination(bool enable) => NextDestinationsRenderer.ForEach(r => r.enabled = enable);
 
         public void UpdateSelectionData(in Regiment regiment)
         {
@@ -104,13 +101,15 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         }
         private void OnDestroy() => inputs.PlacementEvents.DisableAllEvents(OnStartMouseClick, OnPerformMouseMove, OnCancelMouseClick);
         
-        private void OnStartSpace(InputAction.CallbackContext ctx) => Mediator.NotifyDisplayTokens(this,true);
-        private void OnCancelSpace(InputAction.CallbackContext ctx) => Mediator.NotifyDisplayTokens(this,false);
+//INPUTS EVENTS START
+//======================================================================================================================
+        private void OnStartSpace(InputAction.CallbackContext ctx) => MainSystem.NotifyDisplayTokens(this,true);
+        private void OnCancelSpace(InputAction.CallbackContext ctx) => MainSystem.NotifyDisplayTokens(this,false);
         
         private void OnStartMouseClick(InputAction.CallbackContext ctx)
         {
             if (Selection.NumSelection == 0 || MouseStartPosition == ctx.ReadValue<Vector2>()) return;
-            
+
             MouseStartPosition = ctx.ReadValue<Vector2>();
             StartGroundHit = HitGround(StartRay) ? Hit.point : StartGroundHit;
         }
@@ -119,7 +118,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         {
             if (TokensVisible)
             {
-                Mediator.NotifyDestinationSet(this, NextDestinations);
+                MainSystem.NotifyDestinationSet(this, NextDestinations);
                 SetTokenVisible(false);
             }
         }
@@ -149,11 +148,17 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 }
             }
         }
+//======================================================================================================================
+//INPUTS EVENTS END
+//======================================================================================================================
 
         private void SetTokenVisible(bool enable)
         {
             TokensVisible = enable;
-            DisplayNextDestination(enable);
+            for (int i = 0; i < NextDestinationsRenderer.Count; i++)
+            {
+                NextDestinationsRenderer[i].enabled = enable;
+            }
         }
 
         private void PlaceDestinationTokens()

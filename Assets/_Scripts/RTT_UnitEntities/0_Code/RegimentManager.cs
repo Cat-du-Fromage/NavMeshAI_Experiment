@@ -11,8 +11,8 @@ namespace KaizerWaldCode.RTTUnits
 {
     public class RegimentManager : MonoBehaviour, IEntityGroup<Regiment>
     {
-        public IMediator<Regiment> Mediator { get; set; }
-        public EntitySystem EntitySystem { get; set; }
+        public IMainSystem<Regiment> MainSystem { get; set; }
+        [SerializeField] private EntitySystem EntitySystem;
         
         [SerializeField] private int numRegiment, regimentIndex;
         [SerializeField] private GameObject[] regimentPrefabs;
@@ -53,7 +53,7 @@ namespace KaizerWaldCode.RTTUnits
             }
         }
 
-//MEDIATOR EVENT : RECIEVER
+//Interaction System EVENT : RECIEVER
 //======================================================================================================================
 
         //SELECTION
@@ -86,7 +86,7 @@ namespace KaizerWaldCode.RTTUnits
             //ENTITY SYSTEM
             //Regiment[] regimentsToMove = new Regiment[keys.Keys.Count];
             //keys.Keys.CopyTo(regimentsToMove,0);
-            EntitySystem.OnDestinationsSet(keys.GetKeysArray());
+            //EntitySystem.OnDestinationsSet(keys.GetKeysArray());
 
             foreach (Regiment regiment in SelectedRegiments)
             {

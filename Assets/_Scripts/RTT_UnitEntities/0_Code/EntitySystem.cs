@@ -8,25 +8,24 @@ namespace KaizerWaldCode
 {
     public class EntitySystem : MonoBehaviour
     {
-        [SerializeField] private RegimentManager regimentManager;
-        
-        private HashSet<Regiment> RegimentsToMove = new HashSet<Regiment>();
-
-        private HashSet<Leader> Leaders = new HashSet<Leader>();
+        [SerializeField] private RegimentsRegister regimentsRegister;
 
         private void Awake()
         {
-            regimentManager ??= FindObjectOfType<RegimentManager>();
-            regimentManager.EntitySystem = this;
+            regimentsRegister ??= FindObjectOfType<RegimentsRegister>();
+        }
+        
+        private void Start()
+        {
+            OnGameStart();
         }
 
-        public void OnDestinationsSet(Regiment[] regimentsToMove)
+        private void OnGameStart()
         {
-            foreach (Regiment regiment in regimentsToMove)
-            {
-                RegimentsToMove.Add(regiment);
-                Debug.Log($"{regiment.Index}");
-            }
+            if (!TryGetComponent(out RegimentFactory factory)) return;
+            regimentsRegister.Regiments = factory.CreateRegiments();
+            Destroy(factory);
         }
+        
     }
 }

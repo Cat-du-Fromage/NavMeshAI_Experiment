@@ -26,7 +26,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
 {
     public class SelectionManager : MonoBehaviour, ISelector<Regiment>
     {
-        public IMediator<Regiment> Mediator { get; set; }
+        public IMainSystem<Regiment> MainSystem { get; set; }
         
         //=========================================
         //SELECTION ORDER
@@ -85,14 +85,14 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTSelection
             if (RegimentsToSelect.Count == 0 && !ClearSelection) return;
             if (ClearSelection)
             {
-                Mediator.NotifyClearSelections(this);
+                MainSystem.NotifyClearSelections(this);
                 ClearSelection = false;
                 return;
             }
 
             for (int i = 0; i < RegimentsToSelect.Count; i++)
             {
-                Mediator.NotifyEntitySelected(this, RegimentsToSelect.Dequeue());
+                MainSystem.NotifyEntitySelected(this, RegimentsToSelect.Dequeue());
             }
         }
 

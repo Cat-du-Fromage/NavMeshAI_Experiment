@@ -8,49 +8,48 @@ using UnityEngine;
 
 namespace KaizerWaldCode.PlayerEntityInteractions
 {
-    public class InteractionSystem : MonoBehaviour, IMediator<Regiment>
+    
+    
+    public class InteractionSystem : MonoBehaviour, IMainSystem<Regiment>
     {
-        [SerializeField] private RegimentManager regimentManager;
+        [SerializeField] private RegimentsRegister regimentsRegister;
+        
         [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private PlacementManager placementManager;
-
+        
         private void Awake()
         {
-            regimentManager ??= GetComponent<RegimentManager>();
+            regimentsRegister ??= FindObjectOfType<RegimentsRegister>();
+            
             selectionManager ??= GetComponent<SelectionManager>();
             placementManager ??= GetComponent<PlacementManager>();
             
-            IEntityGroup<Regiment> entityGroup = regimentManager;
-            entityGroup.SetMediator(this);
-            ISelector<Regiment> selector = selectionManager;
-            selector.SetMediator(this);
-            IPlacement<Regiment> placement = placementManager;
-            placement.SetMediator(this);
+            (selectionManager as ISelector<Regiment>).AttachSubSystemTo(this);
+            (placementManager as IPlacement<Regiment>).AttachSubSystemTo(this);
         }
 
-        //SELECTION MANAGER
+        //SELECTION SUBSYSTEM
         public void NotifyEntitySelected(ISelector<Regiment> sender, Regiment entitySelected)
         {
-            regimentManager.OnRegimentSelected(entitySelected);
             placementManager.UpdateSelectionData(entitySelected);
+            regimentsRegister.AddSelection(entitySelected);
         }
         
         public void NotifyClearSelections(ISelector<Regiment> sender)
         {
-            regimentManager.OnClearSelections();
+            regimentsRegister.ClearSelection();
             placementManager.ClearSelectionData();
         }
         
-        //PLACEMENT NOTIFIER
-
+        //PLACEMENT SUBSYSTEM
         public void NotifyDestinationSet(IPlacement<Regiment> sender, Dictionary<Regiment,Transform[]> nextDestinations)
         {
-            regimentManager.OnDestinationSet(nextDestinations);
+            foreach ((Regiment regiment, Transform[] unitsDestinations) in nextDestinations)
+            {
+                regiment.SetNewDestination(unitsDestinations);
+            }
         }
 
-        public void NotifyDisplayTokens(IPlacement<Regiment> sender, bool enable)
-        {
-            regimentManager.OnDisplayDestinationTokens(enable);
-        }
+        public void NotifyDisplayTokens(IPlacement<Regiment> sender, bool enable) => regimentsRegister.DisplayRegimentsPositions(enable);
     }
 }

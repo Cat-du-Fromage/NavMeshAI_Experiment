@@ -15,7 +15,11 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
         public bool IsDestinationSet { get; private set; } = false;
         public Transform UnitAttached { get; private set; }
 
-        public void AttachToUnit(Transform unit) => UnitAttached = unit;
+        public void AttachToUnit(Transform unit)
+        {
+            UnitAttached = unit;
+            transform.position = UnitAttached.position;
+        }
 
         public void SetDestination(bool enable) => IsDestinationSet = enable;
 

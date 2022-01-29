@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f467d155f724c63a6f55525e136cd33, type: 3}
   m_Name: FusilierRegiment
   m_EditorClassIdentifier: 
-  baseNumUnits: 100
+  baseNumUnits: 20
   minRow: 4
-  maxRow: 50
-  positionOffset: 0.25
+  maxRow: 10
+  offsetInRow: 0.5

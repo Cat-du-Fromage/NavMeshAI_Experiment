@@ -1,4 +1,5 @@
 using System;
+using KaizerWaldCode.PlayerEntityInteractions;
 using UnityEngine;
 using KaizerWaldCode.RTTUnits;
 using KaizerWaldCode.PlayerEntityInteractions.RTTSelection;
@@ -16,20 +17,37 @@ namespace KaizerWaldCode
             SelectionManager = selection;
             PlacementManager = placement;
         }
- 
-        public void Dispatch(SelectionManager selectionManager)
+
+        public void Dispatch(PlacementManager placementManager, Regiment entitySelected = null)
         {
-            
+            if (entitySelected is null)
+            {
+                //placementManager.ClearSelectionData();
+            }
+            else
+            {
+                //placementManager.UpdateSelectionData(entitySelected);
+            }
         }
         
-        public void Dispatch(PlacementManager placementManager)
+        public void Dispatch(SelectionManager selectionManager, Regiment entitySelected = null)
         {
-            
+            if (entitySelected is null)
+            {
+                //selectionManager.;
+            }
+            else
+            {
+                //selectionManager.UpdateSelectionData(entitySelected);
+            }
         }
     }
     
     public class Porto_InteractionSystem : MonoBehaviour
     {
+        [SerializeField] private Proto_EntitySystem entitySystem;
+        
+        //SubSystems
         [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private PlacementManager placementManager;
 
@@ -37,20 +55,21 @@ namespace KaizerWaldCode
 
         private void Awake()
         {
+            selectionManager ??= GetComponent<SelectionManager>();
+            placementManager ??= GetComponent<PlacementManager>();
+            
             InteractionEvents = new InteractionEvents(selectionManager, placementManager);
         }
 
         //SELECTION MANAGER
-        public void NotifyEntitySelected(Regiment entitySelected)
+        public void Notify(ISelector<Regiment> selection, Regiment entitySelected = null)
         {
-            //regimentManager.OnRegimentSelected(entitySelected);
-            placementManager.UpdateSelectionData(entitySelected);
+            InteractionEvents.Dispatch(selectionManager, entitySelected);
         }
         
-        public void NotifyClearSelections()
+        public void Notify(IPlacement<Regiment> placement, Regiment entitySelected = null)
         {
-            //regimentManager.OnClearSelections();
-            placementManager.ClearSelectionData();
+            InteractionEvents.Dispatch(placementManager, entitySelected);
         }
     }
 }
