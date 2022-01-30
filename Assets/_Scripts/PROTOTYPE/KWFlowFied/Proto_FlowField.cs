@@ -18,7 +18,7 @@ using float3 = Unity.Mathematics.float3;
 
 namespace KaizerWaldCode.Grid
 {
-    public class FlowField
+    public class Proto_FlowField
     {
         private int NumCells;
         public GridSettings Settings;
@@ -39,7 +39,7 @@ namespace KaizerWaldCode.Grid
         
         public int2 PositionInGrid;
 
-        public FlowField(in GridSettings settings)
+        public Proto_FlowField(in GridSettings settings)
         {
             NumCells = sq(settings.MapSize);
             Settings = settings;

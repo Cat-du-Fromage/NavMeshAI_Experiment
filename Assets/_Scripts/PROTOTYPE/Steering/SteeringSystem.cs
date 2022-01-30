@@ -17,7 +17,7 @@ using static KWUtils.KWmath;
 using static KWUtils.KWmesh;
 using static KWUtils.KWRect;
 using static KaizerWaldCode.PlayerEntityInteractions.RTTSelection.SelectionMeshUtils;
-using FlowField = KaizerWaldCode.Grid.FlowField;
+
 namespace KaizerWaldCode
 {
     public class SteeringSystem : KWUtils.Singleton<SteeringSystem>
@@ -36,9 +36,9 @@ namespace KaizerWaldCode
         public Vector3 startMouse; //Will corespond to : regiment's middle current row formation
         public Vector3 EndMouse; //Will corespond to : regiment's middle current row formation destiunations
 
-        private Grid.FlowField flowField;
+        private Grid.Proto_FlowField protoFlowField;
 
-        private Dictionary<GameObject, Grid.FlowField> LeaderFlowField = new Dictionary<GameObject, Grid.FlowField>();
+        private Dictionary<GameObject, Grid.Proto_FlowField> LeaderFlowField = new Dictionary<GameObject, Grid.Proto_FlowField>();
 
         protected override void Awake()
         {
@@ -53,8 +53,8 @@ namespace KaizerWaldCode
 
         public void Start()
         {
-            flowField = new Grid.FlowField(gridSettings);
-            gridSettings.FlowField = flowField;
+            protoFlowField = new Grid.Proto_FlowField(gridSettings);
+            gridSettings.ProtoFlowField = protoFlowField;
         }
 
         private void Update()
@@ -62,9 +62,9 @@ namespace KaizerWaldCode
             if (Mouse.current.press.wasPressedThisFrame)
             {
                 SimulateSetNewDestination();
-                flowField.InitGrid(prefabTargetEnd.transform.position, gridSettings);
-                gridSettings.FlowField = flowField;
-                updateManager.AddObjectToMove(leaderPrefab, flowField);
+                protoFlowField.InitGrid(prefabTargetEnd.transform.position, gridSettings);
+                gridSettings.ProtoFlowField = protoFlowField;
+                updateManager.AddObjectToMove(leaderPrefab, protoFlowField);
             }
         }
 

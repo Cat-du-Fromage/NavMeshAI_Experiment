@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace KWUtils.Debug
         public static void ForGizmo(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.25f, float arrowHeadAngle = 20.0f)
         {
             Gizmos.DrawRay(pos, direction);
-            
+            //Vector3 trueZero = new Vector3(Vector3.kEpsilon,Vector3.kEpsilon,Vector3.kEpsilon);
             Quaternion rotation = direction != Vector3.zero ? LookRotation(direction) : identity;
             
             Vector3 right = rotation * Euler(0, 180 + arrowHeadAngle, 0) * new Vector3(0, 0, 1);

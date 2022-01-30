@@ -40,7 +40,7 @@ namespace KaizerWaldCode.Grid
         public int MapSize { get; private set; }
         public float PointSpacing { get; private set; } //try instead : float CellSize =>
         //==================================================
-        public FlowField FlowField;
+        public Proto_FlowField ProtoFlowField;
 
         //public int[] realCost;
         
@@ -114,7 +114,7 @@ namespace KaizerWaldCode.Grid
                 style.alignment = TextAnchor.MiddleCenter;
                 float cellRadius = PointSpacing / 2f;
                 
-                if (FlowField == null)
+                if (ProtoFlowField == null)
                 {
                     DrawGrid(int2(MapSize), Color.yellow, cellRadius, false, style);
                 }
@@ -133,7 +133,7 @@ namespace KaizerWaldCode.Grid
                 for (int x = 0; x < drawGridSize.x; x++)
                 {
                     int index = (y * drawGridSize.y) + x;
-                    Vector3 center = FlowField.CellsCenterPosition[index];
+                    Vector3 center = ProtoFlowField.CellsCenterPosition[index];
                     //Vector3 size = Vector3.one * drawCellRadius * 2;
                     //Gizmos.DrawWireCube(center, size);
                     //Gizmos.color = Color.red;
@@ -144,21 +144,21 @@ namespace KaizerWaldCode.Grid
                         {
                             case FlowFieldDisplayType.CostField:
                                 center += (Vector3.up * 0.5f);
-                                Handles.Label(center, FlowField.CellsCost[index].ToString(), style);
+                                Handles.Label(center, ProtoFlowField.CellsCost[index].ToString(), style);
                                 break;
 
                             case FlowFieldDisplayType.IntegrationField:
                                 center += (Vector3.up * 0.5f);
-                                string text = FlowField.CellsBestCost[index] >= ushort.MaxValue
+                                string text = ProtoFlowField.CellsBestCost[index] >= ushort.MaxValue
                                     ? MaxDebug
-                                    : FlowField.CellsBestCost[index].ToString();
-                                if (FlowField.CellsBestCost[index] >= ushort.MaxValue) continue;
+                                    : ProtoFlowField.CellsBestCost[index].ToString();
+                                if (ProtoFlowField.CellsBestCost[index] >= ushort.MaxValue) continue;
                                 Handles.Label(center, text, style);
                                 break;
                             
                             case FlowFieldDisplayType.AllIcons :
                                 center -= (Vector3.up * 0.5f);
-                                int2 coord = FlowField.BestDirection[index];
+                                int2 coord = ProtoFlowField.BestDirection[index];
                                 Vector3 dir = new Vector3(coord.x,0,coord.y);
                                 KWUtils.Debug.DrawArrow.ForGizmo(center, dir/2f);
                                 break;

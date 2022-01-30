@@ -8,12 +8,11 @@ using UnityEngine;
 
 namespace KaizerWaldCode.PlayerEntityInteractions
 {
-    
-    
     public class InteractionSystem : MonoBehaviour, IMainSystem<Regiment>
     {
         [SerializeField] private RegimentsRegister regimentsRegister;
         
+        //SubSystems
         [SerializeField] private SelectionManager selectionManager;
         [SerializeField] private PlacementManager placementManager;
         

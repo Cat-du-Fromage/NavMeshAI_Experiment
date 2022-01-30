@@ -11,11 +11,11 @@ namespace KaizerWaldCode
     public class MoveUpdateManager : MonoBehaviour
     {
         [SerializeField] private Transform endLocation;
-        private Dictionary<GameObject, Grid.FlowField> objectsToMove = new Dictionary<GameObject, Grid.FlowField>();
+        private Dictionary<GameObject, Grid.Proto_FlowField> objectsToMove = new Dictionary<GameObject, Grid.Proto_FlowField>();
         //NEED FLOWFIELD VALUE!
         private List<GameObject> LeaderArrived = new List<GameObject>();
 
-        public void AddObjectToMove(GameObject leader, Grid.FlowField flowfield)
+        public void AddObjectToMove(GameObject leader, Grid.Proto_FlowField flowfield)
         {
             objectsToMove.TryAdd(leader, flowfield);
         }
@@ -34,7 +34,7 @@ namespace KaizerWaldCode
 
         private void UpdateLeaderPos()
         {
-            foreach ((GameObject leader, Grid.FlowField flowfield)in objectsToMove)
+            foreach ((GameObject leader, Grid.Proto_FlowField flowfield)in objectsToMove)
             {
                 GridSettings settings = flowfield.Settings;
                 int indexCurrentlyIn =
