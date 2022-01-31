@@ -136,7 +136,7 @@ namespace KaizerWaldCode.RTTUnits
         /// <summary>
         /// DESTINATION : Enable/Disable
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="enable">state you want to enforce</param>
         public void DisplayDestination(bool enable)
         {
             for (int i = 0; i < DestinationTokens.Count; i++)
@@ -148,7 +148,7 @@ namespace KaizerWaldCode.RTTUnits
         /// <summary>
         /// SELECTION : Enable/Disable
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="enable">state you want to enforce</param>
         public void SetSelected(bool enable)
         {
             IsSelected = enable;

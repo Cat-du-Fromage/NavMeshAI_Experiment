@@ -11,13 +11,15 @@ namespace KaizerWaldCode
     {
         [SerializeField] private RegimentsRegister regimentsRegister;
         [SerializeField] private LeaderSubSystem leaderSubSystem;
-        
+        [SerializeField] private UnitSubSystem unitSubSystem;
         private void Awake()
         {
             regimentsRegister ??= FindObjectOfType<RegimentsRegister>();
             leaderSubSystem ??= GetComponent<LeaderSubSystem>();
-
+            unitSubSystem ??= GetComponent<UnitSubSystem>();
+            
             (leaderSubSystem as IEntitySubSystem<Regiment>).MainSystem = this;
+            (unitSubSystem as IEntitySubSystem<Regiment>).MainSystem = this;
         }
         
         private void Start()
@@ -38,6 +40,7 @@ namespace KaizerWaldCode
         private void DispatchToLeaderSubSystem(Regiment regimentToMove)
         {
             leaderSubSystem.AddRegimentToMove(regimentToMove);
+            unitSubSystem.AddRegimentToMove(regimentToMove);
         }
         
         //OnDestinationSet
@@ -51,7 +54,7 @@ namespace KaizerWaldCode
         {
             if (subSystem is LeaderSubSystem)
             {
-                //Generate flowField for
+                unitSubSystem.RemoveRegimentToMove(entity);
             }
             
         }

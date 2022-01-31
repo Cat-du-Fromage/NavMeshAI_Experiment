@@ -114,15 +114,19 @@ namespace KWUtils
         public static unsafe NativeArray<T> ToNativeArray<T>(Span<T> span) where T : unmanaged
         {
             // assumes the GC is non-moving
-            fixed(T* ptr = span)
+            fixed (T* ptr = span)
+            {
                 return ToNativeArray(ptr, span.Length);
+            }
         }
  
         public static unsafe NativeArray<T> ToNativeArray<T>(ReadOnlySpan<T> span) where T : unmanaged
         {
             // assumes the GC is non-moving
-            fixed(T* ptr = span)
+            fixed (T* ptr = span)
+            {
                 return ToNativeArray(ptr, span.Length);
+            }
         }
     }
 }

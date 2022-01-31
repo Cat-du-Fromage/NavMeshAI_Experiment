@@ -13,15 +13,15 @@ namespace KaizerWaldCode.RTTUnits
         Transform leaderTransform;
         private GridData gdata;
         
-        private Regiment AttachRegiment;
+        public Regiment AttachRegiment;
         
         private Vector3 StartDestination = Vector3.zero;
-        private Vector3 EndDestination = Vector3.zero;
+        public Vector3 EndDestination = Vector3.zero;
 
         private Vector3[] FormationSlots;
 
-        private Vector3[] FlowField;
-        private GameObject[] FormationSlotsGhost;
+        public Vector3[] FlowField;
+        public Transform[] FormationSlotsGhost;
 
         //For Debug Purpose
         private Vector3 DebugCenterRegiment;
@@ -34,7 +34,7 @@ namespace KaizerWaldCode.RTTUnits
         public void AttachTo(Regiment regiment)
         {
             AttachRegiment = regiment;
-            FormationSlotsGhost = new GameObject[regiment.CurrentSize];
+            FormationSlotsGhost = new Transform[regiment.CurrentSize];
             FillFormationSlots();
         }
 
@@ -132,7 +132,7 @@ namespace KaizerWaldCode.RTTUnits
                 positionInRow += (index * (unitSize + regimentOffsetRow) * leaderTransform.right);
                 positionInRow += (row * -leaderTransform.forward);
                 
-                FormationSlotsGhost[i] = Instantiate(slot, positionInRow, leaderTransform.rotation, leaderTransform);
+                FormationSlotsGhost[i] = Instantiate(slot.transform, positionInRow, leaderTransform.rotation, leaderTransform);
                 FormationSlotsGhost[i].name = $"slot {i}";
             }
             DestroyImmediate(slot);
@@ -167,7 +167,7 @@ namespace KaizerWaldCode.RTTUnits
                 positionInRow += (index * (unitSize + regimentOffsetRow) * Vector3.right);
                 positionInRow += (row * Vector3.back);
 
-                FormationSlotsGhost[i].transform.localPosition = positionInRow;
+                FormationSlotsGhost[i].localPosition = positionInRow;
                 //FormationSlotsGhost[i].transform.localRotation = leaderTransform.rotation;
             }
             

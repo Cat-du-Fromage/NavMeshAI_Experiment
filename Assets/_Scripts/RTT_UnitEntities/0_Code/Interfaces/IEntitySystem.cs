@@ -11,7 +11,7 @@ namespace KaizerWaldCode.RTTUnits
 
     public interface IEntitySubSystem<T>
     {
-        public IEntitySystem<T> MainSystem { get; set; }
+        public IEntitySystem<T> MainSystem { set; }
         public void AttachSubSystemTo(IEntitySystem<T> mainSystem) //When on awake we will call this! ON THE MEDIATOR!
         {
             MainSystem = mainSystem;
