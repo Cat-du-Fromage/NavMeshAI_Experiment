@@ -22,6 +22,9 @@ namespace KaizerWaldCode.RTTUnits
 
         private Vector3[] FlowField;
         private GameObject[] FormationSlotsGhost;
+
+        //For Debug Purpose
+        private Vector3 DebugCenterRegiment;
         private void Awake()
         {
             leaderTransform = transform;
@@ -51,28 +54,48 @@ namespace KaizerWaldCode.RTTUnits
         private Vector3 GetStartDestination()
         {
             int middleRowIndex = AttachRegiment.PreviousRowFormation / 2;
+            
+            //Get radius of the circumcenter of the formation
+            int numUnitInLastRow = GetNumUnitInLastRow(AttachRegiment.CurrentRowFormation);
+            
+            Vector3 diameterFormation = numUnitInLastRow == 0
+                ? (AttachRegiment.Units[^1].transform.position + AttachRegiment.Units[0].transform.position)
+                : (AttachRegiment.Units[^numUnitInLastRow].transform.position + AttachRegiment.Units[0].transform.position);
+            
+            Vector3 regimentCenter = diameterFormation/2;
+            DebugCenterRegiment = regimentCenter;
+            
+            float radiusFormation = (regimentCenter - AttachRegiment.Units[0].transform.position).magnitude * 2;
+            
+            //radiusFormation /= 2;
+            
             //PickPosition of the unit in the middle of the first Row (even of odd is not important)
             Vector3 regimentCurrentPosition = AttachRegiment.Units[middleRowIndex].transform.position;
             Vector3 startToEndDirection = (EndDestination - regimentCurrentPosition).normalized;
-            
+
+
             //Take middle width of the first row (draw a circle around regiment)
             float offsetDistanceLeaderRegiment = (AttachRegiment.GetUnitType.unitWidth + AttachRegiment.GetRegimentType.offsetInRow) 
-                                                * middleRowIndex;
+                                                * radiusFormation;
 
-            Vector3 rePositionAt = regimentCurrentPosition + (startToEndDirection * offsetDistanceLeaderRegiment);
+            Vector3 rePositionAt = regimentCenter + (startToEndDirection * offsetDistanceLeaderRegiment);
+            
+            Debug.DrawLine(regimentCenter, rePositionAt, Color.magenta, 10f);
             
             return rePositionAt;
         }
 
-        private Vector3 GetSlotStartFrom(int numUnitInRow, float unitSize, float regimentOffsetRow, int offset = 1)
+        private Vector3 GetSlotStartFrom(int numUnitInRow, float unitSize, float regimentOffsetRow, int offset = 1, int from = 0)
         {
             offset = Mathf.Max(1, offset);
             float unitOffset = (numUnitInRow / 2f) * unitSize;
             float rowOffset = (numUnitInRow - 1) / 2f * regimentOffsetRow;
             float dstOffset = unitOffset + rowOffset;
-            
-            Vector3 startRow = StartDestination + (-leaderTransform.right * dstOffset);
-            startRow += -leaderTransform.forward * (unitSize * offset);
+
+            Vector3 startRow = (Vector3.left * dstOffset);
+            startRow += Vector3.back * (unitSize * offset);
+            //Vector3 startRow = StartDestination + (-leaderTransform.right * dstOffset);
+            //startRow += -leaderTransform.forward * (unitSize * offset);
 
             return startRow;
         }
@@ -99,13 +122,12 @@ namespace KaizerWaldCode.RTTUnits
             int lastRowIndex = Mathf.FloorToInt(unitsCount / (float)rowFormation) - 1;
             Vector3 lastRowStart = GetSlotStartFrom(unitInLastRow, unitSize, regimentOffsetRow, lastRowIndex-1);
             
-            Vector3 positionInRow;
             for (int i = 0; i < FormationSlotsGhost.Length; i++)
             {
                 int row = Mathf.FloorToInt(i / (float)rowFormation);
                 int index = i - (row * rowFormation);
 
-                positionInRow = row > lastRowIndex ? lastRowStart : startRow;
+                Vector3 positionInRow = row > lastRowIndex ? lastRowStart : startRow;
                 
                 positionInRow += (index * (unitSize + regimentOffsetRow) * leaderTransform.right);
                 positionInRow += (row * -leaderTransform.forward);
@@ -114,6 +136,41 @@ namespace KaizerWaldCode.RTTUnits
                 FormationSlotsGhost[i].name = $"slot {i}";
             }
             DestroyImmediate(slot);
+        }
+
+        public void UpdateFormation()
+        {
+            if (FormationSlotsGhost[0] is null) return;
+            Debug.Log($"{FormationSlotsGhost[0]}");
+            //Last Row Data
+            int unitsCount = AttachRegiment.CurrentSize;
+            float unitSize = AttachRegiment.GetUnitType.unitWidth;
+            float regimentOffsetRow = AttachRegiment.GetRegimentType.offsetInRow;
+            
+            int rowFormation = AttachRegiment.CurrentRowFormation;
+            
+            int unitInLastRow = GetNumUnitInLastRow(rowFormation);
+            int lastRowIndex = Mathf.FloorToInt(unitsCount / (float)rowFormation) - 1;
+            
+            Vector3 startRow = GetSlotStartFrom(rowFormation, unitSize, regimentOffsetRow);
+            Vector3 lastRowStart = GetSlotStartFrom(unitInLastRow, unitSize, regimentOffsetRow, lastRowIndex-1);
+
+            for (int i = 0; i < FormationSlotsGhost.Length; i++)
+            {
+                int row = Mathf.FloorToInt(i / (float)rowFormation);
+                int index = i - (row * rowFormation);
+
+                Vector3 positionInRow = row > lastRowIndex ? lastRowStart : startRow;
+
+                //Vector3 dir = Vector3.Cross(EndDestination-StartDestination, Vector3.up).normalized;
+                
+                positionInRow += (index * (unitSize + regimentOffsetRow) * Vector3.right);
+                positionInRow += (row * Vector3.back);
+
+                FormationSlotsGhost[i].transform.localPosition = positionInRow;
+                //FormationSlotsGhost[i].transform.localRotation = leaderTransform.rotation;
+            }
+            
         }
         
 
@@ -130,15 +187,15 @@ namespace KaizerWaldCode.RTTUnits
             //Get MiddlePosition of the new destination
             EndDestination = GetEndDestination();
             StartDestination = GetStartDestination();
-
-            leaderTransform.position = StartDestination;
-            leaderTransform.LookAt(EndDestination);
+            
+            Quaternion targetRotation = Quaternion.LookRotation(EndDestination - transform.position);
+            leaderTransform.SetPositionAndRotation(StartDestination, targetRotation);
             //transform.rotation = Quaternion.LookRotation(EndDestination);
             
             FlowField = GetFlowField(EndDestination, gridData);
             
             //Fill formation array
-            //FillFormationSlots();
+            UpdateFormation();
         }
 #if UNITY_EDITOR
         
@@ -151,7 +208,8 @@ namespace KaizerWaldCode.RTTUnits
             Gizmos.DrawSphere(StartDestination, 0.5f);
             Gizmos.DrawRay(StartDestination, EndDestination-StartDestination);
             
-            
+            Gizmos.DrawSphere(DebugCenterRegiment, 1);
+
             if (FormationSlotsGhost[0] == null) return;
             for (int i = 0; i < FormationSlotsGhost.Length; i++)
             {
