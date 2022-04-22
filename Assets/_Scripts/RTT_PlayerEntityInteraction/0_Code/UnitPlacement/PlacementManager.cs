@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using KaizerWaldCode.Globals;
 using KaizerWaldCode.RTTUnits;
 using KWUtils;
+using Unity.Burst;
 //using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -190,7 +191,7 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
 
         
         
-        //[BurstCompile(CompileSynchronously = true)]
+        [BurstCompile(CompileSynchronously = true)]
         private struct JUnitsTokenPlacement : IJobParallelForTransform
         {
             [ReadOnly] public float StartSelectionChangeLength;
@@ -209,9 +210,10 @@ namespace KaizerWaldCode.PlayerEntityInteractions.RTTUnitPlacement
                 
                 //2) increase size placement Each length = UnitSize
                 int newUnitLength = (int)floor(mouseDragLength / FullUnitSize);
-                
+
                 //HOW MANY ROWS?
                 int unitPerRow = (int)floor(MinRowLength + max(0,newUnitLength / NumRegimentSelected));
+
                 unitPerRow = clamp(unitPerRow,MinRowLength, MaxRowLength);
 
                 int numRows = (int)ceil((float)NumUnits / unitPerRow); //Use to offset last row
